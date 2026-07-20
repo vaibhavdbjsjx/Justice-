@@ -1,0 +1,15 @@
+# Netlify deploy config for the LexMind web app (monorepo → apps/web).
+# Vercel users: no config needed — set the project's Root Directory to apps/web.
+
+[build]
+  base = "apps/web"
+  command = "npm run build"
+
+# The official Next.js runtime plugin handles the build output, routing,
+# server components, route handlers, and the proxy/middleware.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[build.environment]
+  # Match the local toolchain; keeps SSR runtime consistent.
+  NODE_VERSION = "20"
