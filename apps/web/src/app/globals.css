@@ -1,0 +1,246 @@
+@import "tailwindcss";
+
+/*
+  LexMind Design System — Part 5 (Premium, luxury feel — non-negotiable).
+  Canonical token values live in /packages/design-tokens/tokens.json and are
+  mirrored here for web + in the Flutter theme (Phase 12). Keep the three in sync.
+
+  Strategy:
+  - Raw brand palette + semantic tokens are declared as CSS variables in :root
+    (light) and overridden in .dark, so a single class flip re-themes everything.
+  - `@theme inline` exposes the *semantic* tokens to Tailwind so utilities like
+    `bg-background`, `text-foreground`, `border-border` follow the active theme.
+  - Dark mode uses the `class` strategy (next-themes) via @custom-variant.
+*/
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* ---- Raw brand palette (Part 5.2) — do not use directly in components,
+         prefer the semantic tokens below so dark mode stays correct. ---- */
+  --ink-navy: #0b1d2e;
+  --ink-navy-700: #123049;
+  --ink-navy-600: #1d3e5c;
+  --gold-accent: #b08d57;
+  --gold-accent-bright: #c6a56e;
+  --paper-cream: #faf7f2;
+  --charcoal-deep: #12181f;
+  --success-sage: #7a9471;
+  --alert-terracotta: #c1654a;
+
+  /* ---- Semantic tokens — LIGHT mode defaults ---- */
+  --background: var(--paper-cream);
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-sunken: #f4efe7;
+  --overlay: rgba(11, 29, 46, 0.38);
+
+  --foreground: #1a1a1a;
+  --muted: #6b6b6b;
+  --muted-strong: #4a4a4a;
+
+  --border: #e7e1d8;
+  --border-strong: #d8cfc1;
+
+  --primary: var(--ink-navy);
+  --primary-hover: var(--ink-navy-700);
+  --primary-foreground: #faf7f2;
+
+  --accent: var(--gold-accent);
+  --accent-hover: #9c7c4b;
+  --accent-foreground: #1a1a1a;
+  --accent-soft: rgba(176, 141, 87, 0.12);
+
+  --success: var(--success-sage);
+  --success-soft: rgba(122, 148, 113, 0.14);
+  --alert: var(--alert-terracotta);
+  --alert-soft: rgba(193, 101, 74, 0.12);
+
+  --ring: var(--gold-accent);
+
+  /* Motion (Part 5.4) — restrained, composed, not bouncy */
+  --ease-refined: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 140ms;
+  --duration: 220ms;
+  --duration-slow: 380ms;
+
+  /* Elevation — soft, warm shadows (avoid harsh SaaS drop shadows) */
+  --shadow-sm: 0 1px 2px rgba(11, 29, 46, 0.06), 0 1px 3px rgba(11, 29, 46, 0.05);
+  --shadow-md: 0 4px 12px rgba(11, 29, 46, 0.08), 0 2px 4px rgba(11, 29, 46, 0.05);
+  --shadow-lg: 0 12px 32px rgba(11, 29, 46, 0.12), 0 4px 8px rgba(11, 29, 46, 0.06);
+}
+
+.dark {
+  --background: var(--charcoal-deep);
+  --surface: #1b232c;
+  --surface-raised: #222c36;
+  --surface-sunken: #0e141a;
+  --overlay: rgba(0, 0, 0, 0.6);
+
+  --foreground: #f2f0ec;
+  --muted: #9a9a94;
+  --muted-strong: #c2c2ba;
+
+  --border: #2a343e;
+  --border-strong: #3a4650;
+
+  --primary: var(--ink-navy-600);
+  --primary-hover: #24496b;
+  --primary-foreground: #f2f0ec;
+
+  --accent: var(--gold-accent-bright);
+  --accent-hover: #d4b783;
+  --accent-foreground: #12181f;
+  --accent-soft: rgba(198, 165, 110, 0.16);
+
+  --success: #8faa85;
+  --success-soft: rgba(143, 170, 133, 0.16);
+  --alert: #d0765b;
+  --alert-soft: rgba(208, 118, 91, 0.16);
+
+  --ring: var(--gold-accent-bright);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.55);
+}
+
+@theme inline {
+  /* Semantic colors (theme-aware) */
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-overlay: var(--overlay);
+
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-strong: var(--muted-strong);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-soft: var(--accent-soft);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-alert: var(--alert);
+  --color-alert-soft: var(--alert-soft);
+
+  --color-ring: var(--ring);
+
+  /* Raw brand hues for the rare intentional direct use */
+  --color-ink-navy: var(--ink-navy);
+  --color-gold: var(--gold-accent);
+  --color-paper-cream: var(--paper-cream);
+  --color-charcoal: var(--charcoal-deep);
+  --color-sage: var(--success-sage);
+  --color-terracotta: var(--alert-terracotta);
+
+  /* Typography */
+  --font-serif: "Fraunces Variable", Georgia, "Times New Roman", serif;
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+
+  /* Radius — Part 5.4: 8–12px, sharper/serious (not playful 24px) */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+
+  /* Motion easings exposed to Tailwind (ease-refined / ease-in-out-soft) */
+  --ease-refined: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/*
+  Shadows are theme-aware (different in dark), so they stay as the semantic
+  CSS vars declared in :root/.dark above and are consumed via arbitrary
+  values: shadow-[var(--shadow-md)]. They are intentionally NOT in @theme.
+*/
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.6;
+  }
+
+  /* Serif is a gravitas moment — applied deliberately via .font-serif / display
+     components, never globally. Provide sensible defaults when it IS used. */
+  .font-serif {
+    font-feature-settings: "liga" 1, "calt" 1;
+    letter-spacing: -0.01em;
+  }
+
+  /* Dense legal reading contexts get generous line-height (Part 5.3). */
+  .legal-prose {
+    line-height: 1.75;
+    letter-spacing: 0.003em;
+  }
+  .legal-prose p + p {
+    margin-top: 0.85em;
+  }
+
+  ::selection {
+    background-color: var(--color-accent-soft);
+    color: var(--color-foreground);
+  }
+
+  /* Refined, always-visible focus ring for WCAG AA (Part 10). */
+  :where(a, button, input, textarea, select, [role="button"], [tabindex]):focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Respect reduced motion — composed by default, still calm when reduced. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Restrained entrance animations (Part 5.4: fades + gentle slides, no spring). */
+@keyframes lm-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes lm-fade-in-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@utility animate-fade-in {
+  animation: lm-fade-in var(--duration) var(--ease-refined) both;
+}
+@utility animate-fade-in-up {
+  animation: lm-fade-in-up var(--duration-slow) var(--ease-refined) both;
+}

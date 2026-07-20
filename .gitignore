@@ -1,0 +1,40 @@
+# ── Dependencies ─────────────────────────────────────────────
+node_modules/
+**/node_modules/
+.pnp
+.pnp.*
+
+# ── Next.js / build output ───────────────────────────────────
+.next/
+**/.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# ── Environment & secrets (NEVER commit real keys) ───────────
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# ── Supabase local RLS test artifacts ────────────────────────
+supabase/tests/.pgdata/
+supabase/tests/node_modules/
+
+# ── Hosting ──────────────────────────────────────────────────
+.vercel
+.netlify
+
+# ── OS / editor / logs ───────────────────────────────────────
+.DS_Store
+*.pem
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.local

@@ -1,0 +1,15 @@
+{
+  "name": "lexmind-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LexMind desktop shell (Tauri) — native window over the LexMind web app.",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "build:debug": "tauri build --debug"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

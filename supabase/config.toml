@@ -1,0 +1,45 @@
+# Supabase CLI config. `supabase link --project-ref <ref>` then `supabase db push`
+# applies migrations/ to the linked cloud project. Local `supabase start` needs Docker.
+project_id = "lexmind"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/auth/callback"]
+jwt_expiry = 3600
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+
+# Social providers (Part 4.1). Fill secrets via environment before enabling.
+[auth.external.google]
+enabled = false
+client_id = ""
+secret = ""
+
+[auth.external.apple]
+enabled = false
+client_id = ""
+secret = ""
+
+[storage]
+enabled = true
+# Document uploads (Phase 5). Bucket created in a later migration.
+file_size_limit = "50MiB"

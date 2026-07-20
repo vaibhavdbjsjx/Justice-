@@ -1,0 +1,24 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { safeNextPath } from "@/lib/auth/next-path";
+
+/**
+ * OAuth / magic-link / email-confirmation landing. Exchanges the code for a
+ * session (setting cookies) and forwards the user on. The app layout then routes
+ * to onboarding vs. dashboard based on profile completion.
+ */
+export async function GET(request: Request) {
+  const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get("code");
+  const next = safeNextPath(searchParams.get("next")) ?? "/dashboard";
+
+  if (code) {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error) {
+      return NextResponse.redirect(`${origin}${next}`);
+    }
+  }
+
+  return NextResponse.redirect(`${origin}/sign-in?error=auth`);
+}

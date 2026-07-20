@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- LexMind app icon: ink-navy field, gold scale-beam "L" motif (Part 5 palette). -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#12283C"/>
+      <stop offset="1" stop-color="#0B1D2E"/>
+    </linearGradient>
+  </defs>
+  <rect x="64" y="64" width="896" height="896" rx="200" fill="url(#bg)"/>
+  <!-- Scale beam -->
+  <rect x="272" y="304" width="480" height="34" rx="17" fill="#B08D57"/>
+  <rect x="495" y="270" width="34" height="90" rx="17" fill="#B08D57"/>
+  <!-- Left pan -->
+  <path d="M 332 338 L 272 470 A 76 76 0 0 0 392 470 Z" fill="none" stroke="#B08D57" stroke-width="26" stroke-linejoin="round"/>
+  <!-- Right pan -->
+  <path d="M 692 338 L 632 470 A 76 76 0 0 0 752 470 Z" fill="none" stroke="#B08D57" stroke-width="26" stroke-linejoin="round"/>
+  <!-- Column + base forming the L -->
+  <rect x="495" y="338" width="34" height="360" fill="#B08D57"/>
+  <rect x="495" y="664" width="240" height="34" rx="17" fill="#B08D57"/>
+  <!-- Base plinth -->
+  <rect x="392" y="726" width="240" height="34" rx="17" fill="#FAF7F2" opacity="0.92"/>
+</svg>
