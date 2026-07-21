@@ -244,3 +244,53 @@
 @utility animate-fade-in-up {
   animation: lm-fade-in-up var(--duration-slow) var(--ease-refined) both;
 }
+
+/* ---- Marketing surface: motion & texture --------------------------------
+   All animation is opacity/transform only so it stays on the compositor
+   (60fps, Part 10). Reduced-motion is neutralised by the global rule above. */
+
+@keyframes lm-caret {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+@keyframes lm-drift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(2%, -2%, 0) scale(1.06); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes lm-pulse-soft {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@utility animate-caret {
+  animation: lm-caret 1.05s steps(1) infinite;
+}
+@utility animate-drift {
+  animation: lm-drift 24s var(--ease-in-out-soft) infinite;
+  will-change: transform;
+}
+@utility animate-pulse-soft {
+  animation: lm-pulse-soft 1.5s var(--ease-in-out-soft) infinite;
+}
+
+/* Fine architectural grid — depth without visual noise. */
+@utility lm-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--border) 65%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--border) 65%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+/* Restrained brass gradient, reserved for a single emphasized phrase. */
+@utility text-gold-gradient {
+  background-image: linear-gradient(
+    100deg,
+    var(--accent) 0%,
+    var(--gold-accent-bright) 45%,
+    var(--accent) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
