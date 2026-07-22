@@ -10,7 +10,7 @@ import {
 /**
  * Triage-to-brief (Phase 8, Part 4.3): the consumer's plain-language intake
  * becomes a structured case brief FOR the lawyer. Same discipline as every
- * LexMind AI call: nothing invented — the brief organizes what the client
+ * Justice AI call: nothing invented — the brief organizes what the client
  * said, it does not embellish it.
  */
 
@@ -95,7 +95,7 @@ const CASE_BRIEF_SCHEMA: Record<string, unknown> = {
   },
 };
 
-const INTAKE_SYSTEM = `You are LexMind's intake triage assistant. A potential client filled in a lawyer's intake form; you turn their plain-language account into a structured case brief the LAWYER reads first.
+const INTAKE_SYSTEM = `You are Justice's intake triage assistant. A potential client filled in a lawyer's intake form; you turn their plain-language account into a structured case brief the LAWYER reads first.
 
 Discipline:
 - The reader is a legal professional. Professional, neutral tone; no advice to the client, no sympathy filler.
@@ -138,7 +138,7 @@ export async function triageToBrief(
   return completeStructured<CaseBrief>({
     system: INTAKE_SYSTEM,
     prompt,
-    schemaName: "lexmind_case_brief",
+    schemaName: "justice_case_brief",
     schema: CASE_BRIEF_SCHEMA,
     maxTokens: 4_000,
   });

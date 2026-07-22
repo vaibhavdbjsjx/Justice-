@@ -1,7 +1,7 @@
-# LexMind — Architecture
+# Justice — Architecture
 
 How the system is structured and how data flows. Updated after every phase.
-See `LexMind_MasterSpec.md` for product requirements and `BUILD_LOG.md` for the
+See `Justice_MasterSpec.md` for product requirements and `BUILD_LOG.md` for the
 running decision log.
 
 ## 1. Platform strategy (Part 3/6)
@@ -10,7 +10,7 @@ One platform-agnostic backend (**Supabase**) serves three frontends:
 
 - **Web** — Next.js (App Router). Primary build. `apps/web`.
 - **Desktop** — **Tauri v2 thin shell** (`apps/desktop`, Phase 11): a native
-  window pointed at the deployed web app (compile-time `LEXMIND_APP_URL`).
+  window pointed at the deployed web app (compile-time `JUSTICE_APP_URL`).
   SSR auth + secrets stay server-side; navigation is origin-pinned and
   external links open in the system browser. No duplicated UI.
 - **Mobile** — a separate **Flutter** app (`apps/mobile`, Phase 12) on the
@@ -34,7 +34,7 @@ way**; `getViewer()` validates a bearer token via `auth.getUser(jwt)`.
 
 ```
 /
-├── LexMind_MasterSpec.md        # product spec (source of truth)
+├── Justice_MasterSpec.md        # product spec (source of truth)
 ├── BUILD_LOG.md                 # decision log, per phase
 ├── ARCHITECTURE.md              # this file
 ├── packages/
@@ -369,7 +369,7 @@ plain-language intake becomes the lawyer's structured case brief.
   the lawyer's case view offers Accept (`active`) / Decline (`ended` — access
   drops immediately). Marketplace requests start `invited`; intake-link
   submissions start `active` (the link is the lawyer's standing invitation).
-- The chat high-stakes nudge links to the directory — the Part 1 "LexMind can
+- The chat high-stakes nudge links to the directory — the Part 1 "Justice can
   help you find one" promise is now a real path.
 
 ## 8. Auth, onboarding & routing (Phase 2)

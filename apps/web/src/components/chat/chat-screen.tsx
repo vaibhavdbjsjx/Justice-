@@ -206,7 +206,7 @@ export function ChatScreen({
         ref={scrollRef}
         onScroll={handleScroll}
         role="log"
-        aria-label="Conversation with the LexMind assistant"
+        aria-label="Conversation with the Justice assistant"
         aria-live="polite"
         className="min-h-0 flex-1 overflow-y-auto pr-1"
       >
@@ -238,7 +238,7 @@ export function ChatScreen({
                     <Scale className="h-3.5 w-3.5 text-accent" />
                   </span>
                   <div className="min-w-0 flex-1 rounded-xl rounded-tl-sm border border-border bg-surface px-4 py-3.5 shadow-[var(--shadow-sm)]">
-                    <span className="sr-only">LexMind replied: </span>
+                    <span className="sr-only">Justice replied: </span>
                     <AssistantMessage
                       content={m.content}
                       audience={audience}
@@ -354,7 +354,7 @@ export function ChatScreen({
         <p className="mt-2 text-center text-[11px] text-muted">
           {audience === "lawyer"
             ? "Research accelerator — verify every citation before relying on it."
-            : `LexMind provides legal information scoped to ${formatJurisdiction(jurisdiction)} — not legal advice.`}
+            : `Justice provides legal information scoped to ${formatJurisdiction(jurisdiction)} — not legal advice.`}
         </p>
       </div>
     </div>

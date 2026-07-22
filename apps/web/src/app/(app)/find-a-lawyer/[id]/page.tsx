@@ -89,7 +89,7 @@ export default async function LawyerProfilePage({
                   />
                   {lawyer.ratingAvg
                     ? `${lawyer.ratingAvg.toFixed(1)} rating`
-                    : "New to LexMind"}
+                    : "New to Justice"}
                 </span>
                 {lawyer.rateRange && <span>{lawyer.rateRange}</span>}
               </p>

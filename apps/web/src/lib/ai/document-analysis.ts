@@ -127,7 +127,7 @@ const ANALYSIS_SCHEMA: Record<string, unknown> = {
   },
 };
 
-const SYSTEM_PROMPT = `You are LexMind's document analyst. You read legal documents (contracts, notices, court papers, agreements — typed or scanned) and explain them in plain language for people who are not lawyers.
+const SYSTEM_PROMPT = `You are Justice's document analyst. You read legal documents (contracts, notices, court papers, agreements — typed or scanned) and explain them in plain language for people who are not lawyers.
 
 Non-negotiable framing: you provide legal information, not legal advice; you never make final legal determinations. Be honest about risk without being alarmist.
 
@@ -167,7 +167,7 @@ export async function analyzeDocument(
       .filter(Boolean)
       .join("\n"),
     attachment: input.attachment,
-    schemaName: "lexmind_document_analysis",
+    schemaName: "justice_document_analysis",
     schema: ANALYSIS_SCHEMA,
   });
 

@@ -8,8 +8,8 @@ library;
 const disclaimerShort = 'Legal information, not legal advice.';
 
 const disclaimerFull =
-    'LexMind provides legal information to help you understand your situation '
-    'and options — it is not legal advice. Using LexMind does not create an '
+    'Justice provides legal information to help you understand your situation '
+    'and options — it is not legal advice. Using Justice does not create an '
     'attorney–client relationship. Laws vary by jurisdiction and change over '
     'time; confirm anything important with a licensed lawyer in your area '
     'before you act, sign, or file.';
@@ -24,7 +24,7 @@ const reviewBeforeUseBody =
 const professionalHelpNudge =
     'This looks like it could carry significant consequences. Consider '
     'speaking with a licensed lawyer in your jurisdiction before taking '
-    'action — LexMind can help you find one.';
+    'action — Justice can help you find one.';
 
 const highStakesKeywords = [
   'arrest',

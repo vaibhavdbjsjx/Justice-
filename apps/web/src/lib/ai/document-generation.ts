@@ -58,7 +58,7 @@ export const GENERATED_DOCUMENT_SCHEMA: Record<string, unknown> = {
   },
 };
 
-const SYSTEM_PROMPT = `You are LexMind's drafting assistant. You produce careful first drafts of common legal documents for people who are not lawyers.
+const SYSTEM_PROMPT = `You are Justice's drafting assistant. You produce careful first drafts of common legal documents for people who are not lawyers.
 
 Non-negotiable framing: this is drafting assistance, not legal advice. The product stamps every draft "Review before use" with space for a lawyer's review — do not add your own disclaimer text into the document body.
 
@@ -121,7 +121,7 @@ export async function generateDocument(
   return completeStructured<GeneratedDocument>({
     system: SYSTEM_PROMPT,
     prompt,
-    schemaName: "lexmind_document_generation",
+    schemaName: "justice_document_generation",
     schema: GENERATED_DOCUMENT_SCHEMA,
     maxTokens: 6_000,
   });

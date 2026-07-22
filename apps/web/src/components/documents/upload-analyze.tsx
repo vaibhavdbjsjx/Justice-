@@ -116,7 +116,7 @@ export function UploadAnalyze({
       setFile(null);
     } catch {
       setError(
-        "LexMind couldn't finish reading that document. Nothing was lost — please try again in a moment.",
+        "Justice couldn't finish reading that document. Nothing was lost — please try again in a moment.",
       );
     } finally {
       setBusy(false);

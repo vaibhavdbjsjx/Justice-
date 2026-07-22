@@ -5,7 +5,7 @@
  * prefill, not state that may outlive the session.
  */
 
-export const DRAFTING_PREFILL_KEY = "lexmind:drafting-prefill";
+export const DRAFTING_PREFILL_KEY = "justice:drafting-prefill";
 
 const MAX_CONTEXT_CHARS = 6_000;
 

@@ -1,4 +1,4 @@
-# Netlify deploy config for the LexMind web app (monorepo → apps/web).
+# Netlify deploy config for the Justice web app (monorepo → apps/web).
 # Vercel users: no config needed — set the project's Root Directory to apps/web.
 
 [build]

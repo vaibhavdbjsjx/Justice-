@@ -1,8 +1,8 @@
 {
-  "name": "lexmind-rls-tests",
+  "name": "justice-rls-tests",
   "private": true,
   "type": "module",
-  "description": "Boots a real embedded Postgres, applies the LexMind migration under a Supabase auth shim, and proves RLS isolation (Part 10).",
+  "description": "Boots a real embedded Postgres, applies the Justice migration under a Supabase auth shim, and proves RLS isolation (Part 10).",
   "scripts": {
     "test:rls": "node rls.test.mjs"
   },

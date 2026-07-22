@@ -1,4 +1,4 @@
-# LexMind — Build Log
+# Justice — Build Log
 
 Running log of decisions, shortcuts, deferrals, and "what's next", updated after
 every phase (Part 0.3). Newest phase on top. Effort per phase follows Part 11.
@@ -158,13 +158,13 @@ animation smoothness — repeat until clean.
 
 ### What was built
 - **`apps/desktop/` — Tauri v2 app**, hand-written (no interactive
-  template): `src-tauri/tauri.conf.json` (LexMind branding, bundle
-  metadata, identifier `com.lexmind.desktop`), `src/main.rs`, `Cargo.toml`
+  template): `src-tauri/tauri.conf.json` (Justice branding, bundle
+  metadata, identifier `com.justice.desktop`), `src/main.rs`, `Cargo.toml`
   (size-optimized release profile), icon pipeline (`icons/source.svg` —
   ink-navy field, gold scale motif per Part 5 → `tauri icon` generates all
   sizes incl. .icns/.ico and Android/iOS sets for Phase 12), README.
 - **Architecture: deliberately thin remote shell.** The window points at the
-  deployed web app (compile-time `LEXMIND_APP_URL`; debug builds default to
+  deployed web app (compile-time `JUSTICE_APP_URL`; debug builds default to
   localhost:3000; release placeholder MUST be overridden before shipping).
   Rationale: Supabase SSR auth and every secret-bearing call live on the
   server — a static export is impossible and shipping keys in a binary
@@ -182,10 +182,10 @@ animation smoothness — repeat until clean.
   Xcode CLT already present.
 
 ### Verification
-- `tauri build --debug` succeeds end-to-end on this box: **LexMind.app +
-  LexMind_0.1.0_aarch64.dmg** produced (dmg ≈ 6.3 MB — thin shell as
-  intended). Info.plist verified: CFBundleName "LexMind", identifier
-  `com.lexmind.desktop` (renamed after Tauri warned that `.app`-suffixed
+- `tauri build --debug` succeeds end-to-end on this box: **Justice.app +
+  Justice_0.1.0_aarch64.dmg** produced (dmg ≈ 6.3 MB — thin shell as
+  intended). Info.plist verified: CFBundleName "Justice", identifier
+  `com.justice.desktop` (renamed after Tauri warned that `.app`-suffixed
   identifiers clash with the macOS bundle extension), icon.icns wired.
 - Not verified here: Windows/Linux bundles (Tauri doesn't cross-compile —
   CI or per-OS builds when shipping) and a click-through against the
@@ -213,7 +213,7 @@ Stripe Connect commission. RevenueCat explicitly lands with Phase 12 mobile.
   form-encoding in the house provider style (like `lib/ai/provider.ts`),
   `STRIPE_API_BASE` override for mocks. Three calls only: checkout session,
   billing portal, webhook signature verification (v1 HMAC-SHA256,
-  constant-time compare, replay tolerance). Price→tier and Stripe→LexMind
+  constant-time compare, replay tolerance). Price→tier and Stripe→Justice
   status mapping are pure exported functions.
 - **Data:** `20260704150000_billing.sql` adds `stripe_customer_id` /
   `stripe_subscription_id` to `subscriptions` — which remains
@@ -320,7 +320,7 @@ Note: no Rust toolchain confirmed on this box yet — Phase 11 may need
   search via a plain GET form (text / practice area / jurisdiction — no
   client JS to search; in-memory filter is fine at this scale, move to SQL
   when the directory grows). Cards show verified badge, honest rating
-  ("New to LexMind" until reviews exist), rates, jurisdictions.
+  ("New to Justice" until reviews exist), rates, jurisdictions.
   **`/find-a-lawyer/[id]`**: full profile + "How working together starts" +
   the request panel.
 - **Linking.** `requestLawyer(lawyerId, matterId, intro)`: the client shares
@@ -343,7 +343,7 @@ Note: no Rust toolchain confirmed on this box yet — Phase 11 may need
   request is unsolicited (lawyer explicitly accepts); an intake submission
   answers the lawyer's own published invitation.
 - **Ratings displayed, never collected yet** — `rating_avg` renders honestly
-  as "New to LexMind" when null; the review system is future work, and
+  as "New to Justice" when null; the review system is future work, and
   nobody can fake a number in the meantime.
 
 ### Verification (Part 0.5 / Part 10)

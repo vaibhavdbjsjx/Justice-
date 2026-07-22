@@ -46,7 +46,7 @@ export default async function SignInPage({
       <AuthForm mode="sign-in" next={next} />
 
       <p className="mt-6 text-center text-sm text-muted">
-        New to LexMind?{" "}
+        New to Justice?{" "}
         <Link
           href={next ? `/sign-up?next=${encodeURIComponent(next)}` : "/sign-up"}
           className="font-medium text-accent underline-offset-4 hover:underline"

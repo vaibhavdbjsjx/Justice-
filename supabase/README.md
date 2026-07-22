@@ -1,4 +1,4 @@
-# LexMind — Supabase
+# Justice — Supabase
 
 Backend for all platforms (Part 6): Postgres, Auth, Storage, Edge Functions.
 

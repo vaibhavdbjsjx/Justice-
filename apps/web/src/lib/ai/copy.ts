@@ -4,7 +4,7 @@
  */
 
 export const AI_ERROR_RETRY =
-  "LexMind couldn't complete that response. Your conversation is safe — please try again in a moment.";
+  "Justice couldn't complete that response. Your conversation is safe — please try again in a moment.";
 
 export const AI_NOT_CONFIGURED =
   "The assistant isn't available right now. Please try again later.";
@@ -16,4 +16,4 @@ export const DOC_FILE_INVALID =
   "That file couldn't be read. Upload a PDF or a clear photo or scan (PNG, JPG, or WEBP) up to 10 MB.";
 
 export const DOC_ANALYSIS_FAILED =
-  "LexMind couldn't finish reading that document. Nothing was lost — please try again in a moment.";
+  "Justice couldn't finish reading that document. Nothing was lost — please try again in a moment.";

@@ -77,7 +77,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
       });
     } catch (_) {
       setState(() => _error =
-          "LexMind couldn't finish reading that document. Nothing was lost — please try again.");
+          "Justice couldn't finish reading that document. Nothing was lost — please try again.");
     } finally {
       if (mounted) setState(() => _uploading = false);
     }
@@ -160,7 +160,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                       children: [
                         const SizedBox(height: 60),
                         Text(
-                          'Upload a contract, notice, or court paper — LexMind shows the obligations, deadlines, and risky clauses.',
+                          'Upload a contract, notice, or court paper — Justice shows the obligations, deadlines, and risky clauses.',
                           textAlign: TextAlign.center,
                           style: theme.textTheme.bodyMedium,
                         ),

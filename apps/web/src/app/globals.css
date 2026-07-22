@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
-  LexMind Design System — Part 5 (Premium, luxury feel — non-negotiable).
+  Justice Design System — Part 5 (Premium, luxury feel — non-negotiable).
   Canonical token values live in /packages/design-tokens/tokens.json and are
   mirrored here for web + in the Flutter theme (Phase 12). Keep the three in sync.
 
@@ -16,47 +16,51 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* ---- Raw brand palette (Part 5.2) — do not use directly in components,
-         prefer the semantic tokens below so dark mode stays correct. ---- */
-  --ink-navy: #0b1d2e;
-  --ink-navy-700: #123049;
-  --ink-navy-600: #1d3e5c;
-  --gold-accent: #b08d57;
-  --gold-accent-bright: #c6a56e;
-  --paper-cream: #faf7f2;
-  --charcoal-deep: #12181f;
-  --success-sage: #7a9471;
-  --alert-terracotta: #c1654a;
+  /* ---- Raw brand palette — burnt orange on warm paper. Do not use directly
+         in components; prefer the semantic tokens below so dark mode stays
+         correct. Contrast note: --brand-orange is deliberately deeper than the
+         signature coral so white text on it clears WCAG AA (~4.8:1); the
+         brighter coral is reserved for accents and dark-mode surfaces. ---- */
+  --brand-orange: #c15f3c;
+  --brand-orange-deep: #a94e2f;
+  --brand-orange-bright: #d97757;
+  --brand-orange-glow: #e08e70;
+  --paper-warm: #faf9f5;
+  --paper-tint: #f5efe7;
+  --ink-deep: #1f1e1d;
+  --ink-soft: #262624;
+  --success-sage: #6f8f66;
+  --alert-red: #b02e1f;
 
   /* ---- Semantic tokens — LIGHT mode defaults ---- */
-  --background: var(--paper-cream);
+  --background: var(--paper-warm);
   --surface: #ffffff;
   --surface-raised: #ffffff;
-  --surface-sunken: #f4efe7;
-  --overlay: rgba(11, 29, 46, 0.38);
+  --surface-sunken: var(--paper-tint);
+  --overlay: rgba(31, 30, 29, 0.42);
 
-  --foreground: #1a1a1a;
-  --muted: #6b6b6b;
-  --muted-strong: #4a4a4a;
+  --foreground: var(--ink-deep);
+  --muted: #6b6862;
+  --muted-strong: #45433f;
 
-  --border: #e7e1d8;
-  --border-strong: #d8cfc1;
+  --border: #ebe5da;
+  --border-strong: #ddd4c6;
 
-  --primary: var(--ink-navy);
-  --primary-hover: var(--ink-navy-700);
-  --primary-foreground: #faf7f2;
+  --primary: var(--brand-orange);
+  --primary-hover: var(--brand-orange-deep);
+  --primary-foreground: #ffffff;
 
-  --accent: var(--gold-accent);
-  --accent-hover: #9c7c4b;
-  --accent-foreground: #1a1a1a;
-  --accent-soft: rgba(176, 141, 87, 0.12);
+  --accent: var(--brand-orange);
+  --accent-hover: var(--brand-orange-deep);
+  --accent-foreground: #ffffff;
+  --accent-soft: rgba(217, 119, 87, 0.12);
 
   --success: var(--success-sage);
-  --success-soft: rgba(122, 148, 113, 0.14);
-  --alert: var(--alert-terracotta);
-  --alert-soft: rgba(193, 101, 74, 0.12);
+  --success-soft: rgba(111, 143, 102, 0.14);
+  --alert: var(--alert-red);
+  --alert-soft: rgba(176, 46, 31, 0.10);
 
-  --ring: var(--gold-accent);
+  --ring: var(--brand-orange);
 
   /* Motion (Part 5.4) — restrained, composed, not bouncy */
   --ease-refined: cubic-bezier(0.22, 1, 0.36, 1);
@@ -66,40 +70,41 @@
   --duration-slow: 380ms;
 
   /* Elevation — soft, warm shadows (avoid harsh SaaS drop shadows) */
-  --shadow-sm: 0 1px 2px rgba(11, 29, 46, 0.06), 0 1px 3px rgba(11, 29, 46, 0.05);
-  --shadow-md: 0 4px 12px rgba(11, 29, 46, 0.08), 0 2px 4px rgba(11, 29, 46, 0.05);
-  --shadow-lg: 0 12px 32px rgba(11, 29, 46, 0.12), 0 4px 8px rgba(11, 29, 46, 0.06);
+  --shadow-sm: 0 1px 2px rgba(31, 30, 29, 0.05), 0 1px 3px rgba(31, 30, 29, 0.04);
+  --shadow-md: 0 4px 12px rgba(31, 30, 29, 0.07), 0 2px 4px rgba(31, 30, 29, 0.04);
+  --shadow-lg: 0 12px 32px rgba(31, 30, 29, 0.10), 0 4px 8px rgba(31, 30, 29, 0.05);
 }
 
 .dark {
-  --background: var(--charcoal-deep);
-  --surface: #1b232c;
-  --surface-raised: #222c36;
-  --surface-sunken: #0e141a;
-  --overlay: rgba(0, 0, 0, 0.6);
+  --background: var(--ink-deep);
+  --surface: var(--ink-soft);
+  --surface-raised: #2f2d2a;
+  --surface-sunken: #171615;
+  --overlay: rgba(0, 0, 0, 0.62);
 
-  --foreground: #f2f0ec;
-  --muted: #9a9a94;
-  --muted-strong: #c2c2ba;
+  --foreground: #f5f4ef;
+  --muted: #a5a199;
+  --muted-strong: #d0ccc2;
 
-  --border: #2a343e;
-  --border-strong: #3a4650;
+  --border: #38352f;
+  --border-strong: #4a463f;
 
-  --primary: var(--ink-navy-600);
-  --primary-hover: #24496b;
-  --primary-foreground: #f2f0ec;
+  /* On dark, the brighter coral carries the brand and takes dark text (~6.9:1). */
+  --primary: var(--brand-orange-bright);
+  --primary-hover: var(--brand-orange-glow);
+  --primary-foreground: var(--ink-deep);
 
-  --accent: var(--gold-accent-bright);
-  --accent-hover: #d4b783;
-  --accent-foreground: #12181f;
-  --accent-soft: rgba(198, 165, 110, 0.16);
+  --accent: var(--brand-orange-glow);
+  --accent-hover: #eba98f;
+  --accent-foreground: var(--ink-deep);
+  --accent-soft: rgba(217, 119, 87, 0.18);
 
-  --success: #8faa85;
-  --success-soft: rgba(143, 170, 133, 0.16);
-  --alert: #d0765b;
-  --alert-soft: rgba(208, 118, 91, 0.16);
+  --success: #8fae83;
+  --success-soft: rgba(143, 174, 131, 0.16);
+  --alert: #e8705a;
+  --alert-soft: rgba(232, 112, 90, 0.16);
 
-  --ring: var(--gold-accent-bright);
+  --ring: var(--brand-orange-glow);
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.45);
@@ -138,12 +143,12 @@
   --color-ring: var(--ring);
 
   /* Raw brand hues for the rare intentional direct use */
-  --color-ink-navy: var(--ink-navy);
-  --color-gold: var(--gold-accent);
-  --color-paper-cream: var(--paper-cream);
-  --color-charcoal: var(--charcoal-deep);
+  --color-brand: var(--brand-orange);
+  --color-brand-bright: var(--brand-orange-bright);
+  --color-paper: var(--paper-warm);
+  --color-ink: var(--ink-deep);
   --color-sage: var(--success-sage);
-  --color-terracotta: var(--alert-terracotta);
+  --color-terracotta: var(--alert-red);
 
   /* Typography */
   --font-serif: "Fraunces Variable", Georgia, "Times New Roman", serif;
@@ -282,13 +287,13 @@
   background-size: 56px 56px;
 }
 
-/* Restrained brass gradient, reserved for a single emphasized phrase. */
-@utility text-gold-gradient {
+/* Restrained brand gradient, reserved for a single emphasized phrase. */
+@utility text-brand-gradient {
   background-image: linear-gradient(
     100deg,
-    var(--accent) 0%,
-    var(--gold-accent-bright) 45%,
-    var(--accent) 100%
+    var(--brand-orange) 0%,
+    var(--brand-orange-bright) 45%,
+    var(--brand-orange) 100%
   );
   -webkit-background-clip: text;
   background-clip: text;

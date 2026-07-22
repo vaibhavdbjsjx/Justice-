@@ -309,7 +309,7 @@ export async function POST(request: Request): Promise<Response> {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
         "Cache-Control": "no-store",
-        ...(matterId ? { "x-lexmind-matter-id": matterId } : {}),
+        ...(matterId ? { "x-justice-matter-id": matterId } : {}),
       },
     });
   } catch (err) {

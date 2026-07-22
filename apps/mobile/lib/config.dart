@@ -2,7 +2,7 @@
 ///
 /// flutter run --dart-define=SUPABASE_URL=https://xyz.supabase.co \
 ///             --dart-define=SUPABASE_ANON_KEY=eyJ... \
-///             --dart-define=LEXMIND_API_BASE=https://app.lexmind.com
+///             --dart-define=JUSTICE_API_BASE=https://app.justice.com
 ///
 /// The API base is the deployed Next.js app — AI calls go through its route
 /// handlers (keys stay server-side), authenticated with the Supabase JWT.
@@ -12,7 +12,7 @@ class AppConfig {
   static const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
   static const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
   static const apiBase = String.fromEnvironment(
-    'LEXMIND_API_BASE',
+    'JUSTICE_API_BASE',
     defaultValue: 'http://localhost:3000',
   );
 

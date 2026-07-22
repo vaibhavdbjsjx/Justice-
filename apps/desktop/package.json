@@ -1,8 +1,8 @@
 {
-  "name": "lexmind-desktop",
+  "name": "justice-desktop",
   "version": "0.1.0",
   "private": true,
-  "description": "LexMind desktop shell (Tauri) — native window over the LexMind web app.",
+  "description": "Justice desktop shell (Tauri) — native window over the Justice web app.",
   "scripts": {
     "tauri": "tauri",
     "dev": "tauri dev",

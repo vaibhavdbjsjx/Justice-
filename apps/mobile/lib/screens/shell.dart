@@ -89,7 +89,7 @@ class _ProfileScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'LexMind provides legal information, not legal advice. '
+            'Justice provides legal information, not legal advice. '
             'Matters, documents, and conversations stay in sync with the '
             'web and desktop apps.',
             style: theme.textTheme.bodySmall,

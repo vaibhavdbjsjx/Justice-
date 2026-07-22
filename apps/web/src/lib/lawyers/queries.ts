@@ -63,7 +63,7 @@ const LAWYER_SELECT =
 function toMarketplaceLawyer(row: LawyerRow): MarketplaceLawyer {
   return {
     userId: row.user_id,
-    name: row.profile?.full_name?.trim() || "LexMind lawyer",
+    name: row.profile?.full_name?.trim() || "Justice lawyer",
     verified: row.verification_status === "verified",
     practiceAreas: normalizeJsonStrings(row.practice_areas),
     licensedJurisdictions: normalizeJsonStrings(row.licensed_jurisdictions),

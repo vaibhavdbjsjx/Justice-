@@ -17,7 +17,7 @@ import {
  * judgment call surfaced, so the lawyer stays in control (Part 8).
  */
 
-const LAWYER_DRAFT_SYSTEM = `You are LexMind's drafting assistant for legal professionals. You produce rigorous first drafts for a licensed lawyer who will review, edit, and take responsibility for the final instrument.
+const LAWYER_DRAFT_SYSTEM = `You are Justice's drafting assistant for legal professionals. You produce rigorous first drafts for a licensed lawyer who will review, edit, and take responsibility for the final instrument.
 
 Framing: drafting assistance for a professional — the lawyer stays in control. The product stamps every export as a draft for review; do NOT add disclaimer text to the document body.
 
@@ -62,7 +62,7 @@ export async function draftForLawyer(
   return completeStructured<GeneratedDocument>({
     system: LAWYER_DRAFT_SYSTEM,
     prompt,
-    schemaName: "lexmind_lawyer_draft",
+    schemaName: "justice_lawyer_draft",
     schema: GENERATED_DOCUMENT_SCHEMA,
     maxTokens: 8_000,
   });
@@ -151,7 +151,7 @@ const REDLINE_SCHEMA: Record<string, unknown> = {
   },
 };
 
-const REDLINE_SYSTEM = `You are LexMind's redlining assistant for legal professionals. You revise the provided text per the lawyer's instructions and account for every meaningful change — the lawyer stays in control by seeing exactly what moved and why.
+const REDLINE_SYSTEM = `You are Justice's redlining assistant for legal professionals. You revise the provided text per the lawyer's instructions and account for every meaningful change — the lawyer stays in control by seeing exactly what moved and why.
 
 Discipline:
 - Return the COMPLETE revised document in revised_markdown. Never elide, summarize, or write "[unchanged]" — retained text appears in full.
@@ -189,7 +189,7 @@ export async function redlineForLawyer(
   return completeStructured<RedlineResult>({
     system: REDLINE_SYSTEM,
     prompt,
-    schemaName: "lexmind_redline",
+    schemaName: "justice_redline",
     schema: REDLINE_SCHEMA,
     maxTokens: 14_000,
   });

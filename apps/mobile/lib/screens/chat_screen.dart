@@ -94,7 +94,7 @@ class _ChatScreenState extends State<ChatScreen> {
     } catch (_) {
       if (mounted) {
         setState(() => _error =
-            "LexMind couldn't complete that response. Your conversation is safe — please try again in a moment.");
+            "Justice couldn't complete that response. Your conversation is safe — please try again in a moment.");
       }
     } finally {
       if (mounted) {
@@ -291,7 +291,7 @@ class _EmptyState extends StatelessWidget {
           ),
         const SizedBox(height: 8),
         Text(
-          'LexMind provides legal information — not legal advice.',
+          'Justice provides legal information — not legal advice.',
           textAlign: TextAlign.center,
           style: theme.textTheme.bodySmall,
         ),

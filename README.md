@@ -1,6 +1,6 @@
 <div align="center">
 
-# ⚖️ LexMind
+# ⚖️ Justice
 
 ### Understand your legal situation in minutes — built for people, and the lawyers who help them.
 
@@ -10,7 +10,7 @@ for lawyers. Jurisdiction-aware, compliance-first, across **web · desktop · mo
 
 `Next.js 16` · `Tailwind v4` · `Supabase (Postgres + RLS)` · `Tauri` · `Flutter` · `OpenAI`
 
-> **LexMind provides legal _information_, not legal advice, and does not create an
+> **Justice provides legal _information_, not legal advice, and does not create an
 > attorney–client relationship.** This framing is built into the product logic, not
 > bolted on — every AI legal output carries its disclaimer by construction.
 
@@ -128,7 +128,7 @@ project **Root Directory** to `apps/web`); a `netlify.toml` is included for Netl
 
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** — how the system is structured and how data flows.
 - **[BUILD_LOG.md](BUILD_LOG.md)** — the running, phase-by-phase decision log.
-- **[LexMind_MasterSpec.md](LexMind_MasterSpec.md)** — the product specification.
+- **[Justice_MasterSpec.md](Justice_MasterSpec.md)** — the product specification.
 
 ---
 

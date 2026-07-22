@@ -31,7 +31,7 @@ export default async function IntakePage({
     <div className="min-h-dvh bg-background">
       <header className="border-b border-border">
         <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-4 sm:px-6">
-          <Link href="/" aria-label="LexMind home">
+          <Link href="/" aria-label="Justice home">
             <Logo />
           </Link>
           <span className="text-xs text-muted">Secure client intake</span>

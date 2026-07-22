@@ -102,7 +102,7 @@ export async function buildPdf(
 ): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   doc.setTitle(title);
-  doc.setProducer("LexMind");
+  doc.setProducer("Justice");
   const serif = await doc.embedFont(StandardFonts.TimesRoman);
   const serifBold = await doc.embedFont(StandardFonts.TimesRomanBold);
   const sans = await doc.embedFont(StandardFonts.Helvetica);
@@ -329,7 +329,7 @@ export async function buildDocx(
   );
 
   const doc = new Document({
-    creator: "LexMind",
+    creator: "Justice",
     title: plainText(title),
     styles: {
       default: {

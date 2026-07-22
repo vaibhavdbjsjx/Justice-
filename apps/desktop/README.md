@@ -1,9 +1,9 @@
-# LexMind Desktop (Tauri)
+# Justice Desktop (Tauri)
 
-A native Mac/Windows/Linux shell over the LexMind web app (Phase 11).
+A native Mac/Windows/Linux shell over the Justice web app (Phase 11).
 
 **Architecture — deliberately thin.** The desktop app is a native window
-pointed at the deployed LexMind web application. Supabase auth (SSR cookies)
+pointed at the deployed Justice web application. Supabase auth (SSR cookies)
 and every secret-bearing call (AI, Stripe) live on the server, so nothing
 sensitive ships in this binary, and web + desktop stay in lockstep with zero
 duplicated UI. Navigation is pinned to the app's origin; external links
@@ -28,7 +28,7 @@ npx tauri icon src-tauri/icons/source.svg
 npm run dev                       # debug builds point at http://localhost:3000
 
 # Release: bake in the production URL
-LEXMIND_APP_URL=https://app.lexmind.com npm run build
+JUSTICE_APP_URL=https://app.justice.com npm run build
 ```
 
 The bundle lands in `src-tauri/target/release/bundle/` (`.app`/`.dmg` on
@@ -37,7 +37,7 @@ in CI; Tauri does not cross-compile).
 
 ## Configuration
 
-- `LEXMIND_APP_URL` (compile-time): the deployed web app URL. Debug builds
+- `JUSTICE_APP_URL` (compile-time): the deployed web app URL. Debug builds
   default to `http://localhost:3000`; release builds fall back to a
   placeholder that MUST be overridden before shipping.
 - Window branding/sizing: `src-tauri/tauri.conf.json` + `src/main.rs`.

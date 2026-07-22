@@ -25,7 +25,7 @@ export default async function MarketplacePage() {
     return (
       <LockedPanel
         title="Marketplace profile"
-        body="Be discoverable by consumers who need your practice areas and jurisdiction — verification confirmed by LexMind, requests arriving as structured briefs."
+        body="Be discoverable by consumers who need your practice areas and jurisdiction — verification confirmed by Justice, requests arriving as structured briefs."
         tier="professional"
       />
     );
@@ -43,7 +43,7 @@ export default async function MarketplacePage() {
         </h1>
         <p className="mt-2 max-w-2xl text-muted">
           Consumers searching &ldquo;Find a lawyer&rdquo; see the card you
-          shape here. Verification is confirmed by LexMind before your
+          shape here. Verification is confirmed by Justice before your
           profile is listed.
         </p>
       </header>

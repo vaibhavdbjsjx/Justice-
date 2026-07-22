@@ -1,8 +1,8 @@
-# LexMind — AI Legal Assistant Platform
+# Justice — AI Legal Assistant Platform
 ## Master Build Specification for Claude Code
 
 > Read this entire document before writing any code.
-> (Markdown copy of `LexMind MasterSpec.pdf`, saved per Part 12.)
+> (Markdown copy of `Justice MasterSpec.pdf`, saved per Part 12.)
 
 ---
 

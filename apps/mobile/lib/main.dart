@@ -13,19 +13,19 @@ Future<void> main() async {
       publishableKey: AppConfig.supabaseAnonKey,
     );
   }
-  runApp(const LexMindApp());
+  runApp(const JusticeApp());
 }
 
-class LexMindApp extends StatelessWidget {
-  const LexMindApp({super.key});
+class JusticeApp extends StatelessWidget {
+  const JusticeApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'LexMind',
+      title: 'Justice',
       debugShowCheckedModeBanner: false,
-      theme: lexmindLight,
-      darkTheme: lexmindDark,
+      theme: justiceLight,
+      darkTheme: justiceDark,
       themeMode: ThemeMode.system,
       home: AppConfig.isConfigured ? const _AuthGate() : const _Unconfigured(),
     );
@@ -64,13 +64,13 @@ class _Unconfigured extends StatelessWidget {
             children: [
               Icon(Icons.balance, size: 44, color: theme.colorScheme.secondary),
               const SizedBox(height: 16),
-              Text('LexMind', style: theme.textTheme.displaySmall),
+              Text('Justice', style: theme.textTheme.displaySmall),
               const SizedBox(height: 12),
               Text(
                 'This build has no backend configured.\n'
                 'Run with --dart-define=SUPABASE_URL=… '
                 '--dart-define=SUPABASE_ANON_KEY=… '
-                '--dart-define=LEXMIND_API_BASE=…',
+                '--dart-define=JUSTICE_API_BASE=…',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium,
               ),

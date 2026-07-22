@@ -6,7 +6,7 @@ import { STRIPE_API_BASE, requireBillingEnv } from "./env";
  * Minimal Stripe client (Phase 10) — fetch + form-encoding, in the house
  * style of lib/ai/provider.ts: no SDK, one file to swap, and a base-URL
  * override so the whole flow is testable against a local mock. Only the
- * three calls LexMind needs.
+ * three calls Justice needs.
  */
 
 export class StripeError extends Error {
@@ -131,7 +131,7 @@ export function verifyStripeSignature(
   });
 }
 
-/** Maps a Stripe price id to a LexMind tier (null = unknown price). */
+/** Maps a Stripe price id to a Justice tier (null = unknown price). */
 export function tierForPrice(
   priceId: string | null | undefined,
   prices: { pricePlus: string; priceProfessional: string },

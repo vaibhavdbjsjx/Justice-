@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'tokens.g.dart';
 
-/// LexMind theme (Part 5) built from the generated tokens — the same palette
+/// Justice theme (Part 5) built from the generated tokens — the same palette
 /// the web reads from tokens.json, so light/dark parity is structural.
 /// Fraunces stays reserved for gravitas moments (titles, document surfaces);
 /// Inter carries functional UI.
@@ -140,7 +140,7 @@ ThemeData _build({
   );
 }
 
-final lexmindLight = _build(
+final justiceLight = _build(
   brightness: Brightness.light,
   background: LightTokens.background,
   surface: LightTokens.surface,
@@ -155,7 +155,7 @@ final lexmindLight = _build(
   alert: LightTokens.alert,
 );
 
-final lexmindDark = _build(
+final justiceDark = _build(
   brightness: Brightness.dark,
   background: DarkTokens.background,
   surface: DarkTokens.surface,

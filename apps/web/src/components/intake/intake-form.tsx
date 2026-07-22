@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
  * and restores on return.
  */
 
-const STASH_PREFIX = "lexmind:intake:";
+const STASH_PREFIX = "justice:intake:";
 const MAX_SITUATION_CHARS = 8_000;
 const MAX_SHORT_CHARS = 2_000;
 
@@ -170,7 +170,7 @@ export function IntakeForm({
         </h2>
         <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
           Your situation was organized into a case brief so {lawyerName} can
-          review it quickly. They&rsquo;ll reach out through LexMind — you can
+          review it quickly. They&rsquo;ll reach out through Justice — you can
           message each other from your matter.
         </p>
         <Card className="mt-5 p-4 text-left">

@@ -58,7 +58,7 @@ export default async function DocumentsPage({
             Documents
           </h1>
           <p className="mt-2 max-w-2xl text-muted">
-            Upload a contract, notice, or court paper. LexMind reads it and
+            Upload a contract, notice, or court paper. Justice reads it and
             shows you the obligations, deadlines, and risky clauses — each one
             linked to the exact text it comes from.
           </p>

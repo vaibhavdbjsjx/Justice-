@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lexmind_mobile/legal/disclaimers.dart';
-import 'package:lexmind_mobile/models/models.dart';
-import 'package:lexmind_mobile/theme/tokens.g.dart';
-import 'package:lexmind_mobile/widgets/ai_legal_output.dart';
-import 'package:lexmind_mobile/widgets/markdown_lite.dart';
+import 'package:justice_mobile/legal/disclaimers.dart';
+import 'package:justice_mobile/models/models.dart';
+import 'package:justice_mobile/theme/tokens.g.dart';
+import 'package:justice_mobile/widgets/ai_legal_output.dart';
+import 'package:justice_mobile/widgets/markdown_lite.dart';
 
 void main() {
   group('design tokens (generated from tokens.json)', () {

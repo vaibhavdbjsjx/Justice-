@@ -136,14 +136,14 @@ export default function HomePage() {
                 style={{ animationDelay: "80ms" }}
               >
                 Understand your legal situation{" "}
-                <span className="text-gold-gradient">in minutes</span>.
+                <span className="text-brand-gradient">in minutes</span>.
               </h1>
 
               <p
                 className="mt-5 max-w-xl animate-fade-in-up text-lg leading-relaxed text-muted"
                 style={{ animationDelay: "160ms" }}
               >
-                LexMind turns dense legal language into plain answers, explains the
+                Justice turns dense legal language into plain answers, explains the
                 documents you’re handed, and drafts what you need — all scoped to your
                 jurisdiction. Built for people, and the lawyers who help them.
               </p>
@@ -212,7 +212,7 @@ export default function HomePage() {
                   See what the fine print actually says
                 </h2>
                 <p className="mt-3 text-muted">
-                  Upload a contract or notice and LexMind puts the original beside a
+                  Upload a contract or notice and Justice puts the original beside a
                   plain-language reading — obligations, deadlines, and the clauses worth
                   worrying about. Hover a highlighted clause to see why it was flagged.
                 </p>
@@ -284,7 +284,7 @@ export default function HomePage() {
                   Simple plans for both sides
                 </h2>
                 <p className="mt-3 text-muted">
-                  Start free. Upgrade when LexMind is doing real work for you.
+                  Start free. Upgrade when Justice is doing real work for you.
                 </p>
               </div>
             </Reveal>
@@ -350,7 +350,7 @@ export default function HomePage() {
 
             <p className="mt-6 text-center text-xs text-muted">
               Plus a ~15% marketplace commission when a consumer hires a lawyer found
-              through LexMind.
+              through Justice.
             </p>
           </div>
         </section>
@@ -365,14 +365,14 @@ export default function HomePage() {
                   className="pointer-events-none absolute inset-0 opacity-60"
                   style={{
                     backgroundImage:
-                      "radial-gradient(60% 80% at 50% 0%, color-mix(in srgb, var(--gold-accent) 22%, transparent), transparent 70%)",
+                      "radial-gradient(60% 80% at 50% 0%, color-mix(in srgb, var(--brand-orange-bright) 30%, transparent), transparent 70%)",
                   }}
                 />
                 <div className="relative">
                   <h2 className="mx-auto max-w-2xl font-serif text-3xl font-medium leading-tight tracking-tight text-primary-foreground sm:text-4xl">
                     Stop guessing what your legal documents mean.
                   </h2>
-                  <p className="mx-auto mt-4 max-w-lg text-primary-foreground/70">
+                  <p className="mx-auto mt-4 max-w-lg text-primary-foreground/85">
                     Ask a question, upload a document, or find a lawyer — free to start,
                     no card required.
                   </p>
@@ -386,7 +386,7 @@ export default function HomePage() {
                     </Link>
                     <Link
                       href="/sign-in"
-                      className="inline-flex h-12 items-center rounded-lg px-6 text-base font-medium text-primary-foreground/80 transition-colors duration-150 hover:text-primary-foreground"
+                      className="inline-flex h-12 items-center rounded-lg px-6 text-base font-medium text-primary-foreground/90 underline-offset-4 transition-colors duration-150 hover:text-primary-foreground hover:underline"
                     >
                       Sign in
                     </Link>

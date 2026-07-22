@@ -152,7 +152,7 @@ export default async function MatterDetailPage({
               <Card className="flex items-start gap-3 border-dashed p-4">
                 <FileText className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
                 <p className="text-sm leading-relaxed text-muted">
-                  Upload a contract or notice for this matter and LexMind will
+                  Upload a contract or notice for this matter and Justice will
                   explain it clause by clause.
                 </p>
               </Card>

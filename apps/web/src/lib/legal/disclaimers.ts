@@ -1,5 +1,5 @@
 /**
- * Canonical compliance copy for LexMind (Part 1 — load-bearing framing).
+ * Canonical compliance copy for Justice (Part 1 — load-bearing framing).
  *
  * This is the SINGLE source of truth for every legal disclaimer, notice, and
  * "you may need a lawyer" nudge in the product. Components must import from
@@ -16,11 +16,11 @@ export const DISCLAIMER_SHORT = "Legal information, not legal advice.";
 
 /** Full disclaimer for banners and the first message of any legal surface. */
 export const DISCLAIMER_FULL =
-  "LexMind provides legal information to help you understand your situation and options — it is not legal advice. Using LexMind does not create an attorney–client relationship. Laws vary by jurisdiction and change over time; confirm anything important with a licensed lawyer in your area before you act, sign, or file.";
+  "Justice provides legal information to help you understand your situation and options — it is not legal advice. Using Justice does not create an attorney–client relationship. Laws vary by jurisdiction and change over time; confirm anything important with a licensed lawyer in your area before you act, sign, or file.";
 
 /** Explicit attorney–client statement (Part 1). */
 export const ATTORNEY_CLIENT_NOTICE =
-  "Using LexMind does not create an attorney–client relationship.";
+  "Using Justice does not create an attorney–client relationship.";
 
 /** Shown on every generated document (Part 4.1 / Phase 6). */
 export const REVIEW_BEFORE_USE_TITLE = "Review before use";
@@ -86,4 +86,4 @@ export function looksHighStakes(text: string | null | undefined): boolean {
 }
 
 export const PROFESSIONAL_HELP_NUDGE =
-  "This looks like it could carry significant consequences. Consider speaking with a licensed lawyer in your jurisdiction before taking action — LexMind can help you find one.";
+  "This looks like it could carry significant consequences. Consider speaking with a licensed lawyer in your jurisdiction before taking action — Justice can help you find one.";

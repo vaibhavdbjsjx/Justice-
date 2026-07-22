@@ -1,5 +1,5 @@
-name: lexmind_mobile
-description: "LexMind — legal information and workflow, on the same backend as web (Phase 12)."
+name: justice_mobile
+description: "Justice — legal information and workflow, on the same backend as web (Phase 12)."
 publish_to: 'none'
 version: 0.1.0+1
 

@@ -5,59 +5,60 @@ import 'dart:ui' show Color;
 
 class BrandTokens {
   const BrandTokens._();
-  static const inkNavy = Color(0xFF0B1D2E);
-  static const inkNavy700 = Color(0xFF123049);
-  static const inkNavy600 = Color(0xFF1D3E5C);
-  static const goldAccent = Color(0xFFB08D57);
-  static const goldAccentBright = Color(0xFFC6A56E);
-  static const paperCream = Color(0xFFFAF7F2);
-  static const charcoalDeep = Color(0xFF12181F);
-  static const successSage = Color(0xFF7A9471);
-  static const alertTerracotta = Color(0xFFC1654A);
+  static const brandOrange = Color(0xFFC15F3C);
+  static const brandOrangeDeep = Color(0xFFA94E2F);
+  static const brandOrangeBright = Color(0xFFD97757);
+  static const brandOrangeGlow = Color(0xFFE08E70);
+  static const paperWarm = Color(0xFFFAF9F5);
+  static const paperTint = Color(0xFFF5EFE7);
+  static const inkDeep = Color(0xFF1F1E1D);
+  static const inkSoft = Color(0xFF262624);
+  static const successSage = Color(0xFF6F8F66);
+  static const alertRed = Color(0xFFB02E1F);
 }
 
 class LightTokens {
   const LightTokens._();
-  static const background = Color(0xFFFAF7F2);
+  static const background = Color(0xFFFAF9F5);
   static const surface = Color(0xFFFFFFFF);
   static const surfaceRaised = Color(0xFFFFFFFF);
-  static const surfaceSunken = Color(0xFFF4EFE7);
-  static const foreground = Color(0xFF1A1A1A);
-  static const muted = Color(0xFF6B6B6B);
-  static const mutedStrong = Color(0xFF4A4A4A);
-  static const border = Color(0xFFE7E1D8);
-  static const borderStrong = Color(0xFFD8CFC1);
-  static const primary = Color(0xFF0B1D2E);
-  static const primaryHover = Color(0xFF123049);
-  static const primaryForeground = Color(0xFFFAF7F2);
-  static const accent = Color(0xFFB08D57);
-  static const accentHover = Color(0xFF9C7C4B);
-  static const accentForeground = Color(0xFF1A1A1A);
-  static const success = Color(0xFF7A9471);
-  static const alert = Color(0xFFC1654A);
-  static const ring = Color(0xFFB08D57);
+  static const surfaceSunken = Color(0xFFF5EFE7);
+  static const foreground = Color(0xFF1F1E1D);
+  static const muted = Color(0xFF6B6862);
+  static const mutedStrong = Color(0xFF45433F);
+  static const border = Color(0xFFEBE5DA);
+  static const borderStrong = Color(0xFFDDD4C6);
+  static const primary = Color(0xFFC15F3C);
+  static const primaryHover = Color(0xFFA94E2F);
+  static const primaryForeground = Color(0xFFFFFFFF);
+  static const accent = Color(0xFFC15F3C);
+  static const accentHover = Color(0xFFA94E2F);
+  static const accentForeground = Color(0xFFFFFFFF);
+  static const success = Color(0xFF6F8F66);
+  static const alert = Color(0xFFB02E1F);
+  static const ring = Color(0xFFC15F3C);
 }
 
 class DarkTokens {
   const DarkTokens._();
-  static const background = Color(0xFF12181F);
-  static const surface = Color(0xFF1B232C);
-  static const surfaceRaised = Color(0xFF222C36);
-  static const surfaceSunken = Color(0xFF0E141A);
-  static const foreground = Color(0xFFF2F0EC);
-  static const muted = Color(0xFF9A9A94);
-  static const mutedStrong = Color(0xFFC2C2BA);
-  static const border = Color(0xFF2A343E);
-  static const borderStrong = Color(0xFF3A4650);
-  static const primary = Color(0xFF1D3E5C);
-  static const primaryHover = Color(0xFF24496B);
-  static const primaryForeground = Color(0xFFF2F0EC);
-  static const accent = Color(0xFFC6A56E);
-  static const accentHover = Color(0xFFD4B783);
-  static const accentForeground = Color(0xFF12181F);
-  static const success = Color(0xFF8FAA85);
-  static const alert = Color(0xFFD0765B);
-  static const ring = Color(0xFFC6A56E);
+  static const background = Color(0xFF1F1E1D);
+  static const surface = Color(0xFF262624);
+  static const surfaceRaised = Color(0xFF2F2D2A);
+  static const surfaceSunken = Color(0xFF171615);
+  static const foreground = Color(0xFFF5F4EF);
+  static const muted = Color(0xFFA5A199);
+  static const mutedStrong = Color(0xFFD0CCC2);
+  static const border = Color(0xFF38352F);
+  static const borderStrong = Color(0xFF4A463F);
+  static const primary = Color(0xFFD97757);
+  static const primaryHover = Color(0xFFE08E70);
+  static const primaryForeground = Color(0xFF1F1E1D);
+  static const accent = Color(0xFFE08E70);
+  static const accentHover = Color(0xFFEBA98F);
+  static const accentForeground = Color(0xFF1F1E1D);
+  static const success = Color(0xFF8FAE83);
+  static const alert = Color(0xFFE8705A);
+  static const ring = Color(0xFFE08E70);
 }
 
 class TypeTokens {

@@ -1,8 +1,8 @@
 [package]
-name = "lexmind-desktop"
+name = "justice-desktop"
 version = "0.1.0"
-description = "LexMind desktop shell — native window over the LexMind web app."
-authors = ["LexMind"]
+description = "Justice desktop shell — native window over the Justice web app."
+authors = ["Justice"]
 edition = "2021"
 
 [build-dependencies]

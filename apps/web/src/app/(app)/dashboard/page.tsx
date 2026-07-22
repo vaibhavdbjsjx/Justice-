@@ -59,7 +59,7 @@ export default async function DashboardPage() {
         <p className="mt-2 max-w-2xl text-muted">
           {role === "lawyer"
             ? "Accelerate research and drafting, and manage your matters — with citation discipline built in."
-            : "Start by asking a question or organizing a matter. LexMind keeps everything scoped to your jurisdiction."}
+            : "Start by asking a question or organizing a matter. Justice keeps everything scoped to your jurisdiction."}
         </p>
       </header>
 

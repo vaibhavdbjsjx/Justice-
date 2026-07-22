@@ -30,7 +30,7 @@ const DEMO_PROFILE: Profile = {
 export async function getViewer(): Promise<Viewer> {
   if (!isSupabaseConfigured) {
     return {
-      user: { id: DEMO_PROFILE.user_id, email: "preview@lexmind.app" },
+      user: { id: DEMO_PROFILE.user_id, email: "preview@justice.app" },
       profile: DEMO_PROFILE,
       isDemo: true,
     };

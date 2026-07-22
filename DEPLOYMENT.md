@@ -1,4 +1,4 @@
-# Deploying LexMind
+# Deploying Justice
 
 The web app lives in `apps/web` (a monorepo). Below are the two supported paths.
 **Vercel is recommended** — Next.js 16 deploys there with zero extra config.
@@ -68,7 +68,7 @@ A [`netlify.toml`](netlify.toml) is included (`base = "apps/web"` +
 
 ## Desktop & mobile
 
-- **Desktop (Tauri):** set `LEXMIND_APP_URL` to the deployed URL, then
+- **Desktop (Tauri):** set `JUSTICE_APP_URL` to the deployed URL, then
   `cargo tauri build` in `apps/desktop`.
 - **Mobile (Flutter):** point the app's API base at the deployed URL and build with
   `flutter build`.

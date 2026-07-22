@@ -8,12 +8,12 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "LexMind — Understand your legal situation in minutes",
-    template: "%s · LexMind",
+    default: "Justice — Understand your legal situation in minutes",
+    template: "%s · Justice",
   },
   description:
-    "LexMind is a legal information, document, and workflow assistant — built for people and the lawyers who help them. Legal information, not legal advice.",
-  applicationName: "LexMind",
+    "Justice is a legal information, document, and workflow assistant — built for people and the lawyers who help them. Legal information, not legal advice.",
+  applicationName: "Justice",
 };
 
 export const viewport: Viewport = {

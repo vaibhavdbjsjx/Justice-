@@ -58,7 +58,7 @@ export async function resolveIntakeToken(
 
   return {
     lawyerId: link.lawyer_id,
-    name: profile?.full_name?.trim() || "A LexMind lawyer",
+    name: profile?.full_name?.trim() || "A Justice lawyer",
     verified: lawyerProfile?.verification_status === "verified",
     practiceAreas: normalizeJsonStrings(lawyerProfile?.practice_areas),
     licensedJurisdictions: normalizeJsonStrings(
