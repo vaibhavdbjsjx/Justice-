@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import type { Viewer } from "@/lib/auth/session";
 import type { Subscription } from "@/lib/supabase/types";
-import type { Tier } from "./tiers";
+import { PAYMENTS_ENABLED, type Tier } from "./tiers";
 
 /**
  * Effective-tier resolution (Phase 10). One rule everywhere:
@@ -43,6 +43,12 @@ export async function getViewerTier(viewer: Viewer): Promise<Tier> {
   // as locked — resolve to the top tier. /billing displays "free" for demo
   // separately so its usage meters + upgrade card still preview.
   if (viewer.isDemo) return "professional";
+  // When in-app payments are disabled (App Store builds — see PAYMENTS_ENABLED),
+  // never gate: grant each role its full feature set so there are no purchase
+  // walls the user cannot pass.
+  if (!PAYMENTS_ENABLED) {
+    return viewer.profile?.role === "lawyer" ? "professional" : "plus";
+  }
   return effectiveTier(await getSubscription());
 }
 

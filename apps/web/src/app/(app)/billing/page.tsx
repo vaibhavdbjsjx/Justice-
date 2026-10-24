@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { BadgeCheck, Check } from "lucide-react";
 import { getViewer } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
@@ -9,6 +10,7 @@ import {
   FREE_ACTIVE_MATTERS,
   FREE_CHAT_MESSAGES_PER_MONTH,
   FREE_GENERATED_DOCS_PER_MONTH,
+  PAYMENTS_ENABLED,
   TIER_FEATURES,
   TIER_PRICING,
   tierLabel,
@@ -38,6 +40,9 @@ export default async function BillingPage({
 }) {
   const [{ status }, viewer] = await Promise.all([searchParams, getViewer()]);
   if (!viewer.user) return null; // (app) layout redirects
+  // On App Store / Mac App Store builds, in-app payments are disabled and every
+  // account already has full access — there is nothing to purchase here.
+  if (!PAYMENTS_ENABLED) redirect("/account");
 
   const role = viewer.profile?.role ?? "consumer";
   const upgradeTier = role === "lawyer" ? "professional" : "plus";

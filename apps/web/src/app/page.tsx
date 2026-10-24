@@ -74,7 +74,7 @@ const tiers = [
   {
     name: "Plus",
     audience: "For people",
-    price: "$14.99",
+    price: "$9.99",
     cadence: "per month",
     features: [
       "Unlimited chat & matters",
@@ -89,7 +89,7 @@ const tiers = [
   {
     name: "Professional",
     audience: "For lawyers",
-    price: "$49.99",
+    price: "$39.99",
     cadence: "per month",
     features: [
       "Research + drafting tools",

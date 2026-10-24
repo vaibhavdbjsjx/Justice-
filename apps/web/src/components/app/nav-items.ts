@@ -6,11 +6,13 @@ import {
   MessagesSquare,
   PenLine,
   Search,
+  Settings,
   Store,
   Users,
   type LucideIcon,
 } from "lucide-react";
 import type { UserRole } from "@/lib/supabase/types";
+import { PAYMENTS_ENABLED } from "@/lib/billing/tiers";
 
 export type NavItem = {
   label: string;
@@ -26,6 +28,7 @@ const consumerNav: NavItem[] = [
   { label: "Documents", href: "/documents", icon: FileText },
   { label: "Find a lawyer", href: "/find-a-lawyer", icon: Users },
   { label: "Billing", href: "/billing", icon: CreditCard },
+  { label: "Account", href: "/account", icon: Settings },
 ];
 
 const lawyerNav: NavItem[] = [
@@ -36,8 +39,11 @@ const lawyerNav: NavItem[] = [
   { label: "Clients", href: "/clients", icon: Users },
   { label: "Marketplace", href: "/marketplace", icon: Store },
   { label: "Billing", href: "/billing", icon: CreditCard },
+  { label: "Account", href: "/account", icon: Settings },
 ];
 
 export function navForRole(role: UserRole): NavItem[] {
-  return role === "lawyer" ? lawyerNav : consumerNav;
+  const items = role === "lawyer" ? lawyerNav : consumerNav;
+  // Hide Billing on builds without in-app payments (App Store / Mac App Store).
+  return PAYMENTS_ENABLED ? items : items.filter((i) => i.href !== "/billing");
 }

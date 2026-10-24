@@ -12,9 +12,21 @@ export const FREE_ACTIVE_MATTERS = 1;
 export const FREE_GENERATED_DOCS_PER_MONTH = 3;
 
 export const TIER_PRICING = {
-  plus: { label: "Plus", price: "$14.99", cadence: "/month" },
-  professional: { label: "Professional", price: "$49.99", cadence: "/month" },
+  plus: { label: "Plus", price: "$9.99", cadence: "/month" },
+  professional: { label: "Professional", price: "$39.99", cadence: "/month" },
 } as const;
+
+/**
+ * Whether in-app paid upgrades are offered on THIS build.
+ *
+ * Set NEXT_PUBLIC_PAYMENTS_ENABLED=false for App Store / Mac App Store builds:
+ * Apple Guideline 3.1.1 requires digital subscriptions to use In-App Purchase,
+ * not Stripe. With payments off, every account gets full access (no purchase
+ * walls) and the Billing section is hidden, so the native build ships clean.
+ * The web build leaves it on (default) and sells via Stripe.
+ */
+export const PAYMENTS_ENABLED =
+  process.env.NEXT_PUBLIC_PAYMENTS_ENABLED !== "false";
 
 export const TIER_FEATURES: Record<"plus" | "professional", string[]> = {
   plus: [
