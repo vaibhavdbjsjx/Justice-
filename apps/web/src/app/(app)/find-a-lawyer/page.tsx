@@ -58,7 +58,7 @@ export default async function FindALawyerPage({
           Find a lawyer
         </h1>
         <p className="mt-2 max-w-2xl text-muted">
-          Every lawyer here has had their bar enrollment confirmed by Justice.
+          Every lawyer here has had their bar enrollment confirmed by Lexa.
           When you find the right fit, share your matter — your documents and
           case brief travel with it.
         </p>

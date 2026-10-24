@@ -72,7 +72,7 @@ export function LawyerCard({
               </>
             ) : (
               <>
-                New to Justice
+                New to Lexa
                 {lawyer.rateRange && (
                   <>
                     <span aria-hidden="true"> · </span>

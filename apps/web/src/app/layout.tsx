@@ -8,12 +8,12 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Justice — Understand your legal situation in minutes",
-    template: "%s · Justice",
+    default: "Lexa — Understand your legal situation in minutes",
+    template: "%s · Lexa",
   },
   description:
-    "Justice is a legal information, document, and workflow assistant — built for people and the lawyers who help them. Legal information, not legal advice.",
-  applicationName: "Justice",
+    "Lexa is a legal information, document, and workflow assistant — built for people and the lawyers who help them. Legal information, not legal advice.",
+  applicationName: "Lexa",
 };
 
 export const viewport: Viewport = {

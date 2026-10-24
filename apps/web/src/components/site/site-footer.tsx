@@ -68,7 +68,7 @@ export function SiteFooter() {
             {DISCLAIMER_FULL}
           </p>
           <p className="mt-4 text-xs text-muted">
-            © {new Date().getFullYear()} Justice. All rights reserved.
+            © {new Date().getFullYear()} Lexa. All rights reserved.
           </p>
         </div>
       </div>

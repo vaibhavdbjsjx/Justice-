@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'tokens.g.dart';
 
-/// Justice theme (Part 5) built from the generated tokens — the same palette
+/// Lexa theme (Part 5) built from the generated tokens — the same palette
 /// the web reads from tokens.json, so light/dark parity is structural.
 /// Fraunces stays reserved for gravitas moments (titles, document surfaces);
 /// Inter carries functional UI.
@@ -140,7 +140,7 @@ ThemeData _build({
   );
 }
 
-final justiceLight = _build(
+final lexaLight = _build(
   brightness: Brightness.light,
   background: LightTokens.background,
   surface: LightTokens.surface,
@@ -155,7 +155,7 @@ final justiceLight = _build(
   alert: LightTokens.alert,
 );
 
-final justiceDark = _build(
+final lexaDark = _build(
   brightness: Brightness.dark,
   background: DarkTokens.background,
   surface: DarkTokens.surface,

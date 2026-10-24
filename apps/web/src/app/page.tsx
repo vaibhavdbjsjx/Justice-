@@ -143,7 +143,7 @@ export default function HomePage() {
                 className="mt-5 max-w-xl animate-fade-in-up text-lg leading-relaxed text-muted"
                 style={{ animationDelay: "160ms" }}
               >
-                Justice turns dense legal language into plain answers, explains the
+                Lexa turns dense legal language into plain answers, explains the
                 documents you’re handed, and drafts what you need — all scoped to your
                 jurisdiction. Built for people, and the lawyers who help them.
               </p>
@@ -212,7 +212,7 @@ export default function HomePage() {
                   See what the fine print actually says
                 </h2>
                 <p className="mt-3 text-muted">
-                  Upload a contract or notice and Justice puts the original beside a
+                  Upload a contract or notice and Lexa puts the original beside a
                   plain-language reading — obligations, deadlines, and the clauses worth
                   worrying about. Hover a highlighted clause to see why it was flagged.
                 </p>
@@ -284,7 +284,7 @@ export default function HomePage() {
                   Simple plans for both sides
                 </h2>
                 <p className="mt-3 text-muted">
-                  Start free. Upgrade when Justice is doing real work for you.
+                  Start free. Upgrade when Lexa is doing real work for you.
                 </p>
               </div>
             </Reveal>
@@ -350,7 +350,7 @@ export default function HomePage() {
 
             <p className="mt-6 text-center text-xs text-muted">
               Plus a ~15% marketplace commission when a consumer hires a lawyer found
-              through Justice.
+              through Lexa.
             </p>
           </div>
         </section>

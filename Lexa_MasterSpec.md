@@ -1,8 +1,8 @@
-# Justice — AI Legal Assistant Platform
+# Lexa — AI Legal Assistant Platform
 ## Master Build Specification for Claude Code
 
 > Read this entire document before writing any code.
-> (Markdown copy of `Justice MasterSpec.pdf`, saved per Part 12.)
+> (Markdown copy of `Lexa MasterSpec.pdf`, saved per Part 12.)
 
 ---
 

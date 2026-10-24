@@ -1,9 +1,12 @@
-# Netlify deploy config for the Justice web app (monorepo → apps/web).
+# Netlify deploy config for the Lexa web app (monorepo → apps/web).
 # Vercel users: no config needed — set the project's Root Directory to apps/web.
 
 [build]
   base = "apps/web"
   command = "npm run build"
+  # Must differ from `base` or @netlify/plugin-nextjs aborts. Relative to base
+  # → apps/web/.next (the Next build output).
+  publish = ".next"
 
 # The official Next.js runtime plugin handles the build output, routing,
 # server components, route handlers, and the proxy/middleware.

@@ -71,7 +71,7 @@ export function LiveChatDemo() {
           <span className="flex h-6 w-6 items-center justify-center rounded-md bg-primary">
             <Scale className="h-3.5 w-3.5 text-primary-foreground" aria-hidden="true" />
           </span>
-          <span className="text-sm font-medium text-foreground">Justice advisor</span>
+          <span className="text-sm font-medium text-foreground">Lexa advisor</span>
           <span className="ml-auto flex items-center gap-1.5 text-[11px] font-medium text-muted">
             <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />
             Live

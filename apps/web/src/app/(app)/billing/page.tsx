@@ -164,7 +164,7 @@ export default async function BillingPage({
         <Card raised className="p-6">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="font-serif text-xl font-medium tracking-tight text-foreground">
-              Justice {pricing.label}
+              Lexa {pricing.label}
             </h2>
             <p className="text-lg font-semibold text-foreground">
               {pricing.price}

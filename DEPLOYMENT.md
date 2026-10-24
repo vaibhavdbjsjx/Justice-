@@ -1,4 +1,4 @@
-# Deploying Justice
+# Deploying Lexa
 
 The web app lives in `apps/web` (a monorepo). Below are the two supported paths.
 **Vercel is recommended** — Next.js 16 deploys there with zero extra config.
@@ -39,7 +39,7 @@ Never commit these — they belong only in the host's env settings and local `.e
 
 ## Option A — Vercel (recommended)
 
-1. **New Project → Import** `github.com/vaibhavdbjsjx/Justice-`.
+1. **New Project → Import** `github.com/vaibhavdbjsjx/Lexa-`.
 2. **Root Directory:** set to **`apps/web`** (this is the only non-default step).
 3. Framework preset auto-detects **Next.js**. Leave build/output commands as default.
 4. Add the environment variables above.
@@ -68,7 +68,7 @@ A [`netlify.toml`](netlify.toml) is included (`base = "apps/web"` +
 
 ## Desktop & mobile
 
-- **Desktop (Tauri):** set `JUSTICE_APP_URL` to the deployed URL, then
+- **Desktop (Tauri):** set `LEXA_APP_URL` to the deployed URL, then
   `cargo tauri build` in `apps/desktop`.
 - **Mobile (Flutter):** point the app's API base at the deployed URL and build with
   `flutter build`.

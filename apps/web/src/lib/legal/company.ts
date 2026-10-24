@@ -7,23 +7,23 @@
  * Store submission). Sensible defaults keep the UI functional in preview.
  */
 
-export const COMPANY_NAME = "Justice";
+export const COMPANY_NAME = "Lexa";
 export const COMPANY_LEGAL_NAME =
-  process.env.NEXT_PUBLIC_COMPANY_LEGAL_NAME || "Justice";
+  process.env.NEXT_PUBLIC_COMPANY_LEGAL_NAME || "Lexa";
 
 /** Apple requires a working Support URL + Privacy Policy. These back them. */
 export const SUPPORT_EMAIL =
-  process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@justice.app";
+  process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@lexa.app";
 export const PRIVACY_EMAIL =
-  process.env.NEXT_PUBLIC_PRIVACY_EMAIL || "privacy@justice.app";
+  process.env.NEXT_PUBLIC_PRIVACY_EMAIL || "privacy@lexa.app";
 export const LEGAL_EMAIL =
-  process.env.NEXT_PUBLIC_LEGAL_EMAIL || "legal@justice.app";
+  process.env.NEXT_PUBLIC_LEGAL_EMAIL || "legal@lexa.app";
 
 /** Shown as "Last updated" on the policy pages. Bump when the text changes. */
 export const POLICIES_EFFECTIVE_DATE = "October 9, 2026";
 
 export const APP_URL =
-  process.env.NEXT_PUBLIC_APP_URL || "https://justice.app";
+  process.env.NEXT_PUBLIC_APP_URL || "https://lexa.app";
 
 /** Third parties that process data on our behalf (named in the Privacy Policy). */
 export const SUBPROCESSORS = [

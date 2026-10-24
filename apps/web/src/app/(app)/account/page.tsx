@@ -51,7 +51,7 @@ export default async function AccountPage() {
         <div>
           <h3 className="font-medium text-foreground">Sign out</h3>
           <p className="mt-0.5 text-sm text-muted">
-            Sign out of Justice on this device.
+            Sign out of Lexa on this device.
           </p>
         </div>
         <form action={signOut}>
@@ -84,7 +84,7 @@ export default async function AccountPage() {
         </div>
         <p className="mt-4 flex items-center gap-2 text-xs text-muted">
           <Badge tone="neutral">Reminder</Badge>
-          Justice provides legal information, not legal advice.
+          Lexa provides legal information, not legal advice.
         </p>
       </Card>
 

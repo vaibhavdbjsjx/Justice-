@@ -18,7 +18,7 @@ class ApiException implements Exception {
 }
 
 const _calmRetry =
-    "Justice couldn't complete that request. Please try again in a moment.";
+    "Lexa couldn't complete that request. Please try again in a moment.";
 
 class LexmindApi {
   LexmindApi({http.Client? httpClient})

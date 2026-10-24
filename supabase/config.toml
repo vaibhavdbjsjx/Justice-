@@ -1,6 +1,6 @@
 # Supabase CLI config. `supabase link --project-ref <ref>` then `supabase db push`
 # applies migrations/ to the linked cloud project. Local `supabase start` needs Docker.
-project_id = "justice"
+project_id = "lexa"
 
 [api]
 enabled = true

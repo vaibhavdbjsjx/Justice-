@@ -1,8 +1,8 @@
 [package]
-name = "justice-desktop"
+name = "lexa-desktop"
 version = "0.1.0"
-description = "Justice desktop shell — native window over the Justice web app."
-authors = ["Justice"]
+description = "Lexa desktop shell — native window over the Lexa web app."
+authors = ["Lexa"]
 edition = "2021"
 
 [build-dependencies]

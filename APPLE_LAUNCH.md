@@ -1,4 +1,4 @@
-# Justice — App Store Launch Checklist
+# Lexa — App Store Launch Checklist
 
 A law-based app draws extra Apple scrutiny. This is the honest, ordered list of
 what will get you approved. ✅ = handled in code. 🧑 = your (human) step.
@@ -64,12 +64,12 @@ mailboxes** for support@, privacy@, legal@ — reviewers sometimes email them.
 
 ## 4. Legal-app softness (Guidelines 5.0 / 1.4 / unauthorized practice)
 
-This is where legal apps die. Justice is already built to pass:
+This is where legal apps die. Lexa is already built to pass:
 
 - Every AI output is framed as **"legal information, not legal advice"** and the
   disclaimer is structural (can't be removed). ✅
 - The app **recommends a licensed lawyer** for high-stakes situations. ✅
-- 🧑 **In the App Review notes, say it plainly:** "Justice provides general legal
+- 🧑 **In the App Review notes, say it plainly:** "Lexa provides general legal
   *information* and document tools. It does not provide legal advice, is not a
   law firm, and does not create an attorney–client relationship. Disclaimers are
   shown on every AI output."

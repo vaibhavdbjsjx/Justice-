@@ -138,7 +138,7 @@ export function OnboardingWizard({ isDemo = false, initialFullName = "" }: Props
         <section className="animate-fade-in">
           <StepHeading
             title="Where do you need help?"
-            subtitle="Laws vary by place, so Justice scopes everything to your jurisdiction."
+            subtitle="Laws vary by place, so Lexa scopes everything to your jurisdiction."
           />
           <div className="mt-6 space-y-4">
             <Field label="Country" htmlFor="country" required>
@@ -194,7 +194,7 @@ export function OnboardingWizard({ isDemo = false, initialFullName = "" }: Props
         <section className="animate-fade-in">
           <StepHeading
             title="A little about you"
-            subtitle="So Justice can address you properly and respond in your language."
+            subtitle="So Lexa can address you properly and respond in your language."
           />
           <div className="mt-6 space-y-4">
             <Field label="Full name" htmlFor="fullName" required>

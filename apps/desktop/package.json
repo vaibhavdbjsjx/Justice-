@@ -1,8 +1,8 @@
 {
-  "name": "justice-desktop",
+  "name": "lexa-desktop",
   "version": "0.1.0",
   "private": true,
-  "description": "Justice desktop shell (Tauri) — native window over the Justice web app.",
+  "description": "Lexa desktop shell (Tauri) — native window over the Lexa web app.",
   "scripts": {
     "tauri": "tauri",
     "dev": "tauri dev",

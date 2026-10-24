@@ -113,7 +113,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     onPressed: () => setState(() => _signUp = !_signUp),
                     child: Text(_signUp
                         ? 'Already have an account? Sign in'
-                        : 'New to Justice? Create an account'),
+                        : 'New to Lexa? Create an account'),
                   ),
                   const SizedBox(height: 20),
                   Text(

@@ -1,4 +1,4 @@
-# Justice — Supabase
+# Lexa — Supabase
 
 Backend for all platforms (Part 6): Postgres, Auth, Storage, Edge Functions.
 

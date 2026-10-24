@@ -20,7 +20,7 @@ const topics = [
   {
     Icon: HelpCircle,
     title: "Help & account",
-    body: "Questions about using Justice, your account, or a technical issue.",
+    body: "Questions about using Lexa, your account, or a technical issue.",
     email: SUPPORT_EMAIL,
   },
   {

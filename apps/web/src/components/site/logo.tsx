@@ -3,7 +3,7 @@ import { Scale } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * Justice wordmark — a burnt-orange mark carrying the scales, paired with the
+ * Lexa wordmark — a burnt-orange mark carrying the scales, paired with the
  * serif wordmark for gravitas. The icon sits on the brand fill in the
  * on-primary colour so it stays legible in both themes.
  */
@@ -21,7 +21,7 @@ export function Logo({
         "group inline-flex items-center gap-2.5 font-serif text-lg font-semibold tracking-tight text-foreground",
         className,
       )}
-      aria-label="Justice home"
+      aria-label="Lexa home"
     >
       <span
         className={cn(
@@ -32,7 +32,7 @@ export function Logo({
       >
         <Scale className="h-[18px] w-[18px] text-primary-foreground" aria-hidden="true" />
       </span>
-      Justice
+      Lexa
     </Link>
   );
 }

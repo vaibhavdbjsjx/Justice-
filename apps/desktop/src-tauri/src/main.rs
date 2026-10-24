@@ -1,10 +1,10 @@
-// Justice desktop shell (Phase 11). A native window over the Justice web
+// Lexa desktop shell (Phase 11). A native window over the Lexa web
 // app — deliberately a THIN shell: Supabase auth (SSR cookies) and every
 // secret-bearing call live on the server, so nothing sensitive ships in
 // this binary and web/desktop/mobile stay in lockstep.
 //
 // The app URL is fixed at compile time:
-//   JUSTICE_APP_URL=https://app.justice.com npm run build
+//   LEXA_APP_URL=https://app.lexa.com npm run build
 // Debug builds default to the local web dev server.
 #![cfg_attr(
     all(not(debug_assertions), target_os = "windows"),
@@ -15,10 +15,10 @@ use tauri::{WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_opener::OpenerExt;
 
 const DEV_URL: &str = "http://localhost:3000";
-const PROD_URL_PLACEHOLDER: &str = "https://app.justice.example";
+const PROD_URL_PLACEHOLDER: &str = "https://app.lexa.example";
 
 fn app_url() -> &'static str {
-    if let Some(url) = option_env!("JUSTICE_APP_URL") {
+    if let Some(url) = option_env!("LEXA_APP_URL") {
         return url;
     }
     if cfg!(debug_assertions) {
@@ -29,7 +29,7 @@ fn app_url() -> &'static str {
 }
 
 fn main() {
-    let url = tauri::Url::parse(app_url()).expect("JUSTICE_APP_URL must be a valid URL");
+    let url = tauri::Url::parse(app_url()).expect("LEXA_APP_URL must be a valid URL");
     let app_origin = url.origin();
 
     tauri::Builder::default()
@@ -39,7 +39,7 @@ fn main() {
             let origin = app_origin.clone();
 
             WebviewWindowBuilder::new(app, "main", WebviewUrl::External(url.clone()))
-                .title("Justice")
+                .title("Lexa")
                 .inner_size(1280.0, 840.0)
                 .min_inner_size(980.0, 640.0)
                 .center()
@@ -57,5 +57,5 @@ fn main() {
             Ok(())
         })
         .run(tauri::generate_context!())
-        .expect("error while running Justice desktop");
+        .expect("error while running Lexa desktop");
 }
