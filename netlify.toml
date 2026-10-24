@@ -16,3 +16,8 @@
 [build.environment]
   # Match the local toolchain; keeps SSR runtime consistent.
   NODE_VERSION = "20"
+  # NEXT_PUBLIC_* values are public by design — Next.js inlines them into the
+  # client bundle so the browser can reach Supabase (the anon key is protected
+  # by row-level security). Tell Netlify's secret scanner to ignore them so the
+  # build doesn't fail on expected, safe exposure.
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_APP_URL,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY"
