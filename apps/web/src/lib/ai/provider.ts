@@ -1,5 +1,5 @@
 import "server-only";
-import { OPENAI_BASE_URL, requireAiEnv } from "./env";
+import { requireAiEnv } from "./env";
 
 /**
  * Provider-agnostic streaming chat interface (server-only).
@@ -63,7 +63,7 @@ export type AiStructuredRequest = {
 export async function completeStructured<T>(
   req: AiStructuredRequest,
 ): Promise<T> {
-  const { apiKey, model } = requireAiEnv();
+  const { apiKey, model, baseUrl } = requireAiEnv();
 
   const attachmentPart = !req.attachment
     ? null
@@ -82,7 +82,7 @@ export async function completeStructured<T>(
           },
         };
 
-  const res = await fetch(`${OPENAI_BASE_URL}/chat/completions`, {
+  const res = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -142,9 +142,9 @@ export async function completeStructured<T>(
 export async function* streamAiChat(
   req: AiStreamRequest,
 ): AsyncGenerator<string> {
-  const { apiKey, model } = requireAiEnv();
+  const { apiKey, model, baseUrl } = requireAiEnv();
 
-  const res = await fetch(`${OPENAI_BASE_URL}/chat/completions`, {
+  const res = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

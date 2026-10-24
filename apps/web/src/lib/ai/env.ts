@@ -1,30 +1,58 @@
 /**
- * Central access to AI provider env, mirroring lib/supabase/env.ts — a missing
+ * Central access to the AI provider, mirroring lib/supabase/env.ts — a missing
  * key fails loudly and once, and early phases keep rendering without it.
  *
- * Owner decision (2026-07-03): chat runs on the OpenAI API instead of the
- * spec's Claude API. Everything provider-specific stays inside lib/ai/ so a
- * later switch back is contained here (see provider.ts).
+ * Providers are auto-detected and swappable without touching provider.ts:
+ *   - Gemini (preferred when set): Google's free OpenAI-compatible endpoint, so
+ *     the same Chat Completions code path works. Great free-tier launch option.
+ *   - OpenAI: used when only OPENAI_API_KEY is set.
+ * Set GEMINI_API_KEY (free at https://aistudio.google.com/apikey) OR
+ * OPENAI_API_KEY. If both are set, Gemini wins.
  */
 
-export const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-/** Vision-capable default; override with OPENAI_MODEL when needed. */
-export const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o";
+export type AiProviderName = "gemini" | "openai" | "none";
 
-/** OpenAI-compatible endpoint base; override for proxies/Azure/local models. */
-export const OPENAI_BASE_URL =
-  process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
+export const AI_PROVIDER: AiProviderName = GEMINI_API_KEY
+  ? "gemini"
+  : OPENAI_API_KEY
+    ? "openai"
+    : "none";
 
-/** True once the AI provider is usable. */
-export const isAiConfigured = Boolean(OPENAI_API_KEY);
+/** True once an AI provider is usable. */
+export const isAiConfigured = AI_PROVIDER !== "none";
 
-export function requireAiEnv(): { apiKey: string; model: string } {
-  if (!OPENAI_API_KEY) {
-    throw new Error(
-      "AI provider is not configured. Set OPENAI_API_KEY in " +
-        "apps/web/.env.local (see .env.example).",
-    );
+const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
+const OPENAI_BASE_URL = "https://api.openai.com/v1";
+
+/** Resolved request config for the active provider. */
+export function requireAiEnv(): {
+  apiKey: string;
+  model: string;
+  baseUrl: string;
+  provider: AiProviderName;
+} {
+  if (GEMINI_API_KEY) {
+    return {
+      apiKey: GEMINI_API_KEY,
+      // Fast, multimodal, free-tier friendly. Override with GEMINI_MODEL.
+      model: process.env.GEMINI_MODEL || "gemini-2.0-flash",
+      baseUrl: process.env.AI_BASE_URL || GEMINI_BASE_URL,
+      provider: "gemini",
+    };
   }
-  return { apiKey: OPENAI_API_KEY, model: OPENAI_MODEL };
+  if (OPENAI_API_KEY) {
+    return {
+      apiKey: OPENAI_API_KEY,
+      model: process.env.OPENAI_MODEL || "gpt-4o",
+      baseUrl: process.env.OPENAI_BASE_URL || OPENAI_BASE_URL,
+      provider: "openai",
+    };
+  }
+  throw new Error(
+    "AI provider is not configured. Set GEMINI_API_KEY (free at " +
+      "aistudio.google.com/apikey) or OPENAI_API_KEY.",
+  );
 }
