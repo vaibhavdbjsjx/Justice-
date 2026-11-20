@@ -53,9 +53,9 @@ export const AI_REVIEW_NOTICE =
 /**
  * Per-request budget, under the platform's function limit so a slow model ends
  * in calm retry copy rather than a raw gateway error. Netlify's synchronous
- * functions run for about 60 seconds; AI_TIMEOUT_MS overrides this elsewhere.
+ * functions stop at 30 seconds; AI_TIMEOUT_MS overrides this elsewhere.
  */
-export const AI_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS) || 55_000;
+export const AI_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS) || 26_000;
 
 const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
 const OPENAI_BASE_URL = "https://api.openai.com/v1";
@@ -81,6 +81,7 @@ export function requireGeminiEnv(): {
         [
           configured,
           "gemini-flash-latest",
+          "gemini-flash-lite-latest",
           "gemini-3.8-flash",
           "gemini-3.6-flash",
         ].filter((m): m is string => Boolean(m)),

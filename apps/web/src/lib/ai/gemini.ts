@@ -129,11 +129,13 @@ async function* streamInteractions(
   model: string,
   req: AiStreamRequest,
   webSearch: boolean,
+  signal?: AbortSignal,
 ): AsyncGenerator<AiStreamEvent> {
   const { apiKey, baseUrl } = requireGeminiEnv();
   const res = await fetch(`${baseUrl}/interactions?alt=sse`, {
     method: "POST",
     headers: headers(apiKey),
+    signal,
     body: JSON.stringify({
       model,
       stream: true,
@@ -264,6 +266,7 @@ async function* streamGenerateContent(
   model: string,
   req: AiStreamRequest,
   webSearch: boolean,
+  signal?: AbortSignal,
 ): AsyncGenerator<AiStreamEvent> {
   const { apiKey, baseUrl } = requireGeminiEnv();
   const res = await fetch(
@@ -271,6 +274,7 @@ async function* streamGenerateContent(
     {
       method: "POST",
       headers: headers(apiKey),
+      signal,
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: req.system }] },
         contents: toContents(req),
@@ -363,13 +367,23 @@ function parseJson<T>(text: string): T {
 
 // ---- Public surface --------------------------------------------------------
 
-/** A retired, renamed, or otherwise unavailable model: worth trying the next. */
+/**
+ * A retired, renamed, overloaded, or out-of-quota model: worth trying the next.
+ * Free-tier quotas are per model, so a 429 on one often leaves the next open.
+ */
 function isModelUnavailable(err: unknown): boolean {
   return (
     err instanceof AiProviderError &&
-    (err.status === 404 || (err.status !== undefined && err.status >= 500))
+    (err.status === 404 ||
+      err.status === 429 ||
+      (err.status !== undefined && err.status >= 500))
   );
 }
+
+/** Time allowed for the first token of one attempt before moving on. */
+const FIRST_TOKEN_MS = 12_000;
+/** No new attempt starts after this, so the reply ends before the host's limit. */
+const ATTEMPTS_BUDGET_MS = 20_000;
 
 /** A bad or unauthorized key won't be fixed by retrying anything. */
 function isAuthFailure(err: unknown): boolean {
@@ -388,26 +402,36 @@ export async function* streamGemini(
   webSearch: boolean,
 ): AsyncGenerator<AiStreamEvent> {
   const { models } = requireGeminiEnv();
-  const attempts = (model: string) => [
-    ...(webSearch ? [() => streamInteractions(model, req, true)] : []),
-    () => streamInteractions(model, req, false),
-    () => streamGenerateContent(model, req, false),
+  // generateContent first: it is the endpoint the free tier serves most reliably.
+  type Attempt = (signal: AbortSignal) => AsyncGenerator<AiStreamEvent>;
+  const attempts = (model: string): Attempt[] => [
+    ...(webSearch ? [(s: AbortSignal) => streamGenerateContent(model, req, true, s)] : []),
+    (s) => streamGenerateContent(model, req, false, s),
+    (s) => streamInteractions(model, req, false, s),
   ];
 
+  const started = Date.now();
   let lastError: unknown = new AiProviderError("No Gemini model available");
-  for (const model of models) {
+  outer: for (const model of models) {
     for (const attempt of attempts(model)) {
-      const iterator = attempt();
+      if (Date.now() - started > ATTEMPTS_BUDGET_MS) break outer;
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), FIRST_TOKEN_MS);
+      const iterator = attempt(controller.signal);
       let first: IteratorResult<AiStreamEvent>;
       try {
         first = await iterator.next();
       } catch (err) {
-        lastError = err;
-        console.error("[ai] gemini attempt failed:", model, describe(err));
+        clearTimeout(timer);
+        lastError = controller.signal.aborted
+          ? new AiProviderError("Gemini took too long to start answering")
+          : err;
+        console.error("[ai] gemini attempt failed:", model, describe(lastError));
         if (isAuthFailure(err)) throw err;
         if (isModelUnavailable(err)) break;
         continue;
       }
+      clearTimeout(timer);
       if (first.done) {
         lastError = new AiProviderError("Gemini returned an empty response");
         continue;
