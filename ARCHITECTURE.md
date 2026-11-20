@@ -6,23 +6,28 @@ running decision log.
 
 ## 1. Platform strategy (Part 3/6)
 
-One platform-agnostic backend (**Supabase**) serves three frontends:
+One platform-agnostic backend (**Supabase**) serves these frontends:
 
 - **Web** — Next.js (App Router). Primary build. `apps/web`.
-- **Desktop** — **Tauri v2 thin shell** (`apps/desktop`, Phase 11): a native
-  window pointed at the deployed web app (compile-time `LEXA_APP_URL`).
-  SSR auth + secrets stay server-side; navigation is origin-pinned and
-  external links open in the system browser. No duplicated UI.
-- **Mobile** — a separate **Flutter** app (`apps/mobile`, Phase 12) on the
-  same Supabase backend + generated design tokens. Reads hit Supabase
-  directly (same RLS); AI/secret calls go through the web API routes with a
-  bearer token. Consumer-shaped features (chat, matters, documents,
-  generation); lawyer tools stay web/desktop.
+- **iPhone, iPad, and Mac** — the **Flutter** app (`apps/mobile`, Phases 12 and
+  14) on the same Supabase backend and generated design tokens. One build runs
+  on iPhone, iPad (sidebar layout from 700 pt), and Apple silicon Macs. Reads
+  hit Supabase directly (same RLS). AI and anything secret goes through the web
+  API routes with a bearer token. Native Swift (`ios/Runner/Native`,
+  `ios/LexaLiveActivity`) adds Live Activities and the Dynamic Island,
+  background document reading, StoreKit 2, pickers and scanning, Sign in with
+  Apple, and reminders, all behind one method channel (`app.lexa/native`).
+- **Desktop (optional)** — a Tauri v2 shell over the website (`apps/desktop`,
+  Phase 11). The App Store's Mac app is the iPad build, so this is only for
+  distribution outside the store.
 
 The AI reasoning engine is called only from backend route handlers through the
-provider-agnostic layer in `apps/web/src/lib/ai/` (Phase 3+). **Current
-provider: OpenAI** (owner decision 2026-07-03, superseding the spec's Claude
-choice); swapping vendors is contained to `lib/ai/provider.ts`.
+provider-agnostic layer in `apps/web/src/lib/ai/` (Phase 3+). **Default
+provider: Google Gemini** (`lib/ai/gemini.ts`), with Google Search grounding so
+answers carry their sources, and a fallback across current models so a model
+retirement doesn't take the app down. OpenAI remains a drop-in alternative.
+Before any personal content reaches the provider, the person must have agreed
+to share it with that provider (`lib/ai/consent.ts`, enforced server-side).
 
 **API auth has two transports** (Phase 12): web sends the Supabase session as
 cookies (`@supabase/ssr`, refreshed by `proxy.ts`); mobile sends
@@ -58,11 +63,11 @@ way**; `getViewer()` validates a bearer token via `auth.getUser(jwt)`.
             │   ├── compliance/  # DisclaimerBanner, AiLegalOutput, ... (Part 5.6)
             │   └── site/        # Logo, SiteHeader, SiteFooter
             ├── lib/
-            │   ├── ai/          # provider-agnostic AI layer: provider (OpenAI),
+            │   ├── ai/          # provider-agnostic AI layer: Gemini or OpenAI,
             │   │                #   prompts, document analysis/generation,
             │   │                #   lawyer drafting/redlining, intake triage,
             │   │                #   error copy, env
-            │   ├── billing/     # Stripe fetch client, tiers/limits, usage
+            │   ├── billing/     # App Store verification, Stripe client, tiers, usage
             │   │                #   metering, effective-tier gate
             │   ├── clients/     # lawyer-side reads/actions (client matters,
             │   │                #   intake links, thread), demo fixtures
@@ -175,7 +180,7 @@ Next.js route handler / Server Action   ──►  Supabase (Postgres + RLS)
    │                                            ▲
    │  builds jurisdiction + matter context      │ service role for trusted writes
    ▼                                            │
-lib/ai provider (OpenAI today) ─────────────────┘
+lib/ai provider (Gemini by default) ────────────┘
    │  streamed response + structured output (citations, annotations)
    ▼
 AiLegalOutput wrapper  ──►  disclaimer + jurisdiction + (high-stakes nudge)

@@ -2,6 +2,7 @@ import { getViewer } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { isAiConfigured } from "@/lib/ai/env";
+import { aiConsentRequired, needsAiConsent } from "@/lib/ai/consent";
 import { AiProviderError } from "@/lib/ai/provider";
 import { triageToBrief } from "@/lib/ai/intake";
 import { AI_ERROR_RETRY, AI_NOT_CONFIGURED } from "@/lib/ai/copy";
@@ -70,6 +71,7 @@ export async function POST(request: Request): Promise<Response> {
   if (!viewer.user || !viewer.profile) {
     return jsonError("Please sign in to send your information.", 401);
   }
+  if (!viewer.isDemo && needsAiConsent(viewer.profile)) return aiConsentRequired();
 
   let body: SubmitBody;
   try {

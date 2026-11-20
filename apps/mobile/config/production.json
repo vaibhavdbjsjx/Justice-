@@ -1,0 +1,5 @@
+{
+  "SUPABASE_URL": "https://vajlpuwzdqbxfhqagwfp.supabase.co",
+  "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhamxwdXd6ZHFieGZocWFnd2ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NDU2NTEsImV4cCI6MjEwODQyMTY1MX0.xNnhgOZdco75wUpAevGfIPAKrMW5_RQ0neTSQ-LT0ew",
+  "LEXA_API_BASE": "https://lexa-main.netlify.app"
+}

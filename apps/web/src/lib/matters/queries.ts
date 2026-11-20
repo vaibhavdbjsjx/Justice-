@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { metaFromStored } from "@/lib/ai/stream-meta";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import type { Deadline, Matter } from "@/lib/supabase/types";
 import type { UiMessage } from "@/components/chat/chat-screen";
@@ -86,7 +87,7 @@ export async function getMatterDetail(
       .order("due_date", { ascending: true, nullsFirst: false }),
     supabase
       .from("chat_messages")
-      .select("id, role, content")
+      .select("id, role, content, citations")
       .eq("matter_id", matterId)
       .order("created_at", { ascending: true })
       .limit(200),
@@ -99,6 +100,7 @@ export async function getMatterDetail(
       id: r.id,
       role: r.role,
       content: r.content,
+      meta: metaFromStored(r.citations),
     })),
   };
 }

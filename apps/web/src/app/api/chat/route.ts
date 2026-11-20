@@ -2,12 +2,18 @@ import { getViewer } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { isAiConfigured } from "@/lib/ai/env";
+import {
+  AI_PROVIDER,
+  isAiConfigured,
+  isWebSearchEnabled,
+} from "@/lib/ai/env";
 import {
   AiProviderError,
   streamAiChat,
   type AiChatMessage,
 } from "@/lib/ai/provider";
+import { aiConsentRequired, needsAiConsent } from "@/lib/ai/consent";
+import { STREAM_META_SEPARATOR, type StreamMeta } from "@/lib/ai/stream-meta";
 import {
   buildConsumerSystemPrompt,
   buildLawyerResearchPrompt,
@@ -24,9 +30,14 @@ import {
   AI_NOT_CONFIGURED,
 } from "@/lib/ai/copy";
 import { parseCitationsForStorage } from "@/lib/legal/citations";
+import type { Json } from "@/lib/supabase/types";
 import { getLicensedJurisdictions } from "@/lib/lawyers/queries";
 import { getViewerTier, upgradeError } from "@/lib/billing/gate";
-import { countChatMessagesThisMonth } from "@/lib/billing/usage";
+import {
+  countChatMessagesSince,
+  countChatMessagesThisMonth,
+} from "@/lib/billing/usage";
+import { resolveJurisdiction } from "@/lib/legal/jurisdiction";
 import {
   FREE_CHAT_MESSAGES_PER_MONTH,
   UPGRADE_CHAT_LIMIT,
@@ -48,6 +59,8 @@ import {
 
 const MAX_MESSAGE_CHARS = 8_000;
 const MAX_HISTORY_MESSAGES = 30;
+/** Stops runaway clients on every plan, including the unlimited one. */
+const MAX_MESSAGES_PER_MINUTE = 20;
 
 type ChatRequestBody = {
   message?: unknown;
@@ -93,6 +106,8 @@ export async function POST(request: Request): Promise<Response> {
   }
   const { profile } = viewer;
 
+  if (!viewer.isDemo && needsAiConsent(profile)) return aiConsentRequired();
+
   let body: ChatRequestBody;
   try {
     body = (await request.json()) as ChatRequestBody;
@@ -121,6 +136,8 @@ export async function POST(request: Request): Promise<Response> {
 
   // ---- Tier gates (Phase 10; demo previews ungated) -------------------------
   if (!viewer.isDemo && isSupabaseConfigured) {
+    // Plan limits first: someone out of questions should hear how to get more,
+    // not to wait a minute.
     const tier = await getViewerTier(viewer);
     if (audience === "lawyer" && tier !== "professional") {
       return upgradeError(UPGRADE_PROFESSIONAL);
@@ -132,6 +149,18 @@ export async function POST(request: Request): Promise<Response> {
         return upgradeError(UPGRADE_CHAT_LIMIT);
       }
     }
+
+    const recent = await countChatMessagesSince(
+      await createClient(),
+      viewer.user.id,
+      new Date(Date.now() - 60_000).toISOString(),
+    );
+    if (recent >= MAX_MESSAGES_PER_MINUTE) {
+      return jsonError(
+        "That's a lot of questions at once. Give it a minute and try again.",
+        429,
+      );
+    }
   }
 
   // ---- Matter scope + persistence (persistence skipped in demo mode) -------
@@ -140,8 +169,8 @@ export async function POST(request: Request): Promise<Response> {
   let matterContext: {
     title: string;
     category: string | null;
-    country: string | null;
-    state: string | null;
+    jurisdiction_country: string | null;
+    jurisdiction_state: string | null;
   } | null = null;
   let matterDocuments: { title: string; summary: string }[] = [];
   let licensedJurisdictions: string[] = [];
@@ -167,12 +196,7 @@ export async function POST(request: Request): Promise<Response> {
           .maybeSingle();
         if (!matter) return jsonError("That matter isn't available.", 404);
         matterId = matter.id;
-        matterContext = {
-          title: matter.title,
-          category: matter.category,
-          country: matter.jurisdiction_country,
-          state: matter.jurisdiction_state,
-        };
+        matterContext = matter;
 
         // Analyzed documents give the assistant matter-document context
         // (Part 4.1). Summaries only — full text would blow the budget.
@@ -211,12 +235,7 @@ export async function POST(request: Request): Promise<Response> {
     const { demoMatterDetail } = await import("@/lib/matters/demo");
     const demo = demoMatterDetail(requestedMatterId);
     if (demo) {
-      matterContext = {
-        title: demo.matter.title,
-        category: demo.matter.category,
-        country: demo.matter.jurisdiction_country,
-        state: demo.matter.jurisdiction_state,
-      };
+      matterContext = demo.matter;
       const { demoDocumentList } = await import("@/lib/documents/demo");
       matterDocuments = demoDocumentList()
         .filter((d) => d.matter_id === requestedMatterId)
@@ -230,6 +249,9 @@ export async function POST(request: Request): Promise<Response> {
     }
   }
 
+  // Grounding needs Gemini's native client; other providers answer from the model.
+  const webSearch = isWebSearchEnabled && AI_PROVIDER === "gemini";
+
   const system =
     audience === "lawyer"
       ? buildLawyerResearchPrompt({
@@ -239,25 +261,25 @@ export async function POST(request: Request): Promise<Response> {
           },
           licensedJurisdictions,
           matterTitle: RESEARCH_MATTER_TITLE,
+          webSearch,
         })
       : buildConsumerSystemPrompt({
-          jurisdiction: matterContext
-            ? { country: matterContext.country, state: matterContext.state }
-            : { country: profile.country, state: profile.state_province },
+          jurisdiction: resolveJurisdiction(matterContext, profile),
           preferredLanguage: profile.preferred_language,
           matterTitle: matterContext?.title ?? null,
           matterCategory: matterContext
             ? categoryLabel(matterContext.category)
             : null,
           documents: matterDocuments,
+          webSearch,
         });
 
   // ---- Stream the model response -------------------------------------------
-  let upstream: AsyncGenerator<string>;
   try {
-    upstream = streamAiChat({
+    const upstream = streamAiChat({
       system,
       messages: [...history, { role: "user", content: message }],
+      webSearch,
     });
     // Surface pre-stream failures (bad key, quota) as a clean JSON error
     // instead of an empty 200 stream.
@@ -266,42 +288,80 @@ export async function POST(request: Request): Promise<Response> {
     const encoder = new TextEncoder();
     const persistMatterId = matterId;
     const userId = viewer.user.id;
-    let assistantText = first.done ? "" : first.value;
+    let assistantText = "";
+    let meta: StreamMeta | null = null;
+    let clientGone = false;
+
+    const take = (event: (typeof first)["value"], send: (t: string) => void) => {
+      if (typeof event !== "object" || event === null) return;
+      if (event.type === "text") {
+        assistantText += event.text;
+        send(event.text);
+      } else {
+        meta = {
+          sources: event.sources,
+          searchSuggestionsHtml: event.searchSuggestionsHtml,
+        };
+      }
+    };
 
     const stream = new ReadableStream<Uint8Array>({
       async start(controller) {
-        if (!first.done) controller.enqueue(encoder.encode(first.value));
-        try {
-          for await (const delta of upstream) {
-            assistantText += delta;
-            controller.enqueue(encoder.encode(delta));
+        // Leaving the screen mustn't lose the answer: keep reading so it can be
+        // saved, and find it in the conversation on return.
+        const send = (text: string) => {
+          if (clientGone) return;
+          try {
+            controller.enqueue(encoder.encode(text));
+          } catch {
+            clientGone = true;
           }
+        };
+
+        let failed = false;
+        try {
+          if (!first.done) take(first.value, send);
+          for await (const event of upstream) take(event, send);
         } catch (err) {
           // Mid-stream failure: end the stream with an error so the client
           // shows the calm retry state; the partial text stays visible.
           console.error("[chat] stream interrupted:", err);
-          controller.error(new Error(AI_ERROR_RETRY));
-          return;
+          failed = true;
         }
-        controller.close();
 
+        // Save before finishing the response: a serverless function can be
+        // frozen the moment its response ends.
         if (persistMatterId && assistantText) {
           try {
+            const refs =
+              audience === "lawyer"
+                ? parseCitationsForStorage(assistantText)
+                : null;
+            const citations =
+              meta || refs ? { ...(meta ?? {}), ...(refs ? { refs } : {}) } : null;
             const admin = createAdminClient();
             await admin.from("chat_messages").insert({
               matter_id: persistMatterId,
               user_id: userId,
               role: "assistant",
               content: assistantText,
-              citations:
-                audience === "lawyer"
-                  ? parseCitationsForStorage(assistantText)
-                  : null,
+              citations: citations as unknown as Json,
             });
           } catch (err) {
             console.error("[chat] failed to persist assistant message:", err);
           }
         }
+
+        if (clientGone) return;
+        if (failed) {
+          controller.error(new Error(AI_ERROR_RETRY));
+          return;
+        }
+        if (meta) send(STREAM_META_SEPARATOR + JSON.stringify(meta));
+        controller.close();
+      },
+      cancel() {
+        clientGone = true;
       },
     });
 

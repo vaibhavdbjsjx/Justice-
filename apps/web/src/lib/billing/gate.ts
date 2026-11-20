@@ -15,10 +15,29 @@ import { PAYMENTS_ENABLED, type Tier } from "./tiers";
 
 const EFFECTIVE_STATUSES = new Set(["active", "past_due"]);
 
-export function effectiveTier(sub: Pick<Subscription, "tier" | "status"> | null): Tier {
+/**
+ * App Store renewals reach us by server notification or the app's next sync, so
+ * an Apple plan stays valid for a day past its date while that catches up.
+ */
+const APPLE_RENEWAL_GRACE_MS = 24 * 60 * 60 * 1000;
+
+export function effectiveTier(
+  sub:
+    | (Pick<Subscription, "tier" | "status"> &
+        Partial<Pick<Subscription, "source" | "renews_at">>)
+    | null,
+): Tier {
   if (!sub) return "free";
   if (sub.tier === "free") return "free";
-  return EFFECTIVE_STATUSES.has(sub.status) ? sub.tier : "free";
+  if (!EFFECTIVE_STATUSES.has(sub.status)) return "free";
+  if (
+    sub.source === "apple" &&
+    sub.renews_at &&
+    Date.parse(sub.renews_at) + APPLE_RENEWAL_GRACE_MS < Date.now()
+  ) {
+    return "free";
+  }
+  return sub.tier;
 }
 
 export async function getSubscription(): Promise<Subscription | null> {
@@ -57,9 +76,13 @@ export async function getTierFor(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
 ): Promise<Tier> {
+  // Same rule as getViewerTier: with payments off there are no purchase walls.
+  if (!PAYMENTS_ENABLED) return "professional";
+  // select("*") on purpose: it keeps working before the launch migration adds
+  // the Apple columns, where naming them would fail and read as "free".
   const { data } = await supabase
     .from("subscriptions")
-    .select("tier, status")
+    .select("*")
     .eq("user_id", userId)
     .maybeSingle();
   return effectiveTier(data);

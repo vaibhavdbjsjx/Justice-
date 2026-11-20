@@ -38,3 +38,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 *.local
+
+# ── Local backend (supabase/tests/local-backend.mjs) ─────────
+supabase/tests/.pgdata*
+supabase/tests/.storage-local/
+supabase/tests/local-backend.credentials.json

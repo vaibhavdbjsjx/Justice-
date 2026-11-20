@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { AnalysisView } from "./analysis-view";
 import { DOC_FILE_INVALID } from "@/lib/ai/copy";
+import { createClient } from "@/lib/supabase/client";
 import type { AnalyzeResponse } from "@/lib/documents/analysis-types";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +28,9 @@ export type MatterOption = {
 };
 
 const ACCEPTED = ["application/pdf", "image/png", "image/jpeg", "image/webp"];
-const MAX_BYTES = 10 * 1024 * 1024;
+const MAX_BYTES = 20 * 1024 * 1024;
+/** Hosted functions reject larger request bodies, so bigger files use storage. */
+const DIRECT_UPLOAD_BYTES = 4 * 1024 * 1024;
 
 /** Staged copy while the single analysis call runs (~time-based). */
 const STAGES = [
@@ -87,15 +90,44 @@ export function UploadAnalyze({
     setStage(0);
     setBusy(true);
     try {
-      const form = new FormData();
-      form.set("file", file);
-      if (title.trim()) form.set("title", title.trim());
-      if (matterId) form.set("matterId", matterId);
-
-      const res = await fetch("/api/documents/analyze", {
-        method: "POST",
-        body: form,
-      });
+      let res: Response;
+      if (file.size > DIRECT_UPLOAD_BYTES && !isDemo) {
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        const storagePath = `${user?.id}/${crypto.randomUUID()}-${file.name.replace(/[^\w.-]+/g, "_")}`;
+        const { error: uploadError } = await supabase.storage
+          .from("document-uploads")
+          .upload(storagePath, file, { contentType: file.type });
+        if (uploadError) {
+          console.error("[documents] upload failed:", uploadError.message);
+          setError(
+            "That file is too large to upload right now. Try a file under 4 MB, or a clear photo of the key pages.",
+          );
+          return;
+        }
+        res = await fetch("/api/documents/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            storagePath,
+            filename: file.name,
+            mimeType: file.type,
+            title: title.trim() || undefined,
+            matterId: matterId || undefined,
+          }),
+        });
+      } else {
+        const form = new FormData();
+        form.set("file", file);
+        if (title.trim()) form.set("title", title.trim());
+        if (matterId) form.set("matterId", matterId);
+        res = await fetch("/api/documents/analyze", {
+          method: "POST",
+          body: form,
+        });
+      }
       if (!res.ok) {
         let message = DOC_FILE_INVALID;
         try {
@@ -121,7 +153,7 @@ export function UploadAnalyze({
     } finally {
       setBusy(false);
     }
-  }, [file, busy, title, matterId, router]);
+  }, [file, busy, title, matterId, router, isDemo]);
 
   // Local-preview result: render the signature view inline.
   if (result) {
@@ -208,7 +240,7 @@ export function UploadAnalyze({
         </p>
         <p className="mt-1 text-sm text-muted">
           Contract, notice, court paper, or agreement — PDF or a clear photo,
-          up to 10 MB.
+          up to 20 MB.
         </p>
         <Button
           variant="secondary"

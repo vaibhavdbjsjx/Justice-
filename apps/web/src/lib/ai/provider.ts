@@ -1,69 +1,45 @@
 import "server-only";
-import { requireAiEnv } from "./env";
+import { AI_PROVIDER, AI_TIMEOUT_MS, requireOpenAiEnv } from "./env";
+import { completeGemini, streamGemini } from "./gemini";
+import {
+  AiProviderError,
+  type AiStreamEvent,
+  type AiStreamRequest,
+  type AiStructuredRequest,
+} from "./types";
+
+export { AiProviderError } from "./types";
+export type {
+  AiAttachment,
+  AiChatMessage,
+  AiSource,
+  AiStreamEvent,
+  AiStreamRequest,
+  AiStructuredRequest,
+} from "./types";
 
 /**
- * Provider-agnostic streaming chat interface (server-only).
- *
- * The rest of the app talks to `streamAiChat()` and never to a vendor SDK or
- * endpoint, so the reasoning engine is swappable in this one file. Current
- * implementation: OpenAI Chat Completions over fetch + SSE (owner decision,
- * 2026-07-03 — the master spec's Part 6 names Claude; the owner supplied an
- * OpenAI key and directed its use).
+ * Provider-agnostic AI interface (server-only). The rest of the app talks to
+ * `streamAiChat()` and `completeStructured()` and never to a vendor, so swapping
+ * the reasoning engine is an env change (see env.ts). Gemini has its own client
+ * in gemini.ts; OpenAI and any compatible endpoint use Chat Completions here.
  */
 
-export type AiChatMessage = {
-  role: "user" | "assistant";
-  content: string;
-};
-
-export type AiStreamRequest = {
-  /** System prompt (see prompts.ts — jurisdiction/compliance framing). */
-  system: string;
-  /** Conversation so far, oldest first, ending with the new user message. */
-  messages: AiChatMessage[];
-  maxTokens?: number;
-};
-
-/** Raised for any upstream failure. Route handlers must map this to calm,
- * professional copy (Part 8) — never surface `detail` to the client. */
-export class AiProviderError extends Error {
-  constructor(
-    message: string,
-    public readonly status?: number,
-    public readonly detail?: string,
-  ) {
-    super(message);
-    this.name = "AiProviderError";
-  }
+/** Newer OpenAI models reject a custom temperature; only older ones take it. */
+function temperatureFor(model: string, temperature: number) {
+  return /^gpt-4/.test(model) ? { temperature } : {};
 }
 
-
-/** One attachment for multimodal requests (document intelligence). */
-export type AiAttachment =
-  | { kind: "image"; mediaType: string; base64: string }
-  | { kind: "pdf"; filename: string; base64: string };
-
-export type AiStructuredRequest = {
-  system: string;
-  /** The user instruction (accompanying the attachment, when present). */
-  prompt: string;
-  /** Optional document/image input; omit for text-only structured calls. */
-  attachment?: AiAttachment;
-  /** Strict JSON schema the reply must satisfy. */
-  schemaName: string;
-  schema: Record<string, unknown>;
-  maxTokens?: number;
-};
-
 /**
- * Non-streaming multimodal completion with a strict JSON-schema response
- * (OpenAI structured outputs). Used by Document Intelligence: images go as
- * image_url parts, PDFs as file parts — both on the same endpoint.
+ * Non-streaming multimodal completion with a strict JSON-schema response. Used
+ * by Document Intelligence and generation.
  */
 export async function completeStructured<T>(
   req: AiStructuredRequest,
 ): Promise<T> {
-  const { apiKey, model, baseUrl } = requireAiEnv();
+  if (AI_PROVIDER === "gemini") return completeGemini<T>(req);
+
+  const { apiKey, model, baseUrl } = requireOpenAiEnv();
 
   const attachmentPart = !req.attachment
     ? null
@@ -88,10 +64,11 @@ export async function completeStructured<T>(
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
+    signal: AbortSignal.timeout(AI_TIMEOUT_MS),
     body: JSON.stringify({
       model,
-      temperature: 0.2,
-      max_tokens: req.maxTokens ?? 12_000,
+      ...temperatureFor(model, 0.2),
+      max_completion_tokens: req.maxTokens ?? 32_000,
       response_format: {
         type: "json_schema",
         json_schema: { name: req.schemaName, strict: true, schema: req.schema },
@@ -136,13 +113,18 @@ export async function completeStructured<T>(
 }
 
 /**
- * Streams assistant text as an async generator of content deltas.
- * Legal information wants precision over flair → low temperature.
+ * Streams an assistant answer: text deltas, then (for grounded answers) the
+ * sources it drew on. Legal information wants precision over flair.
  */
 export async function* streamAiChat(
   req: AiStreamRequest,
-): AsyncGenerator<string> {
-  const { apiKey, model, baseUrl } = requireAiEnv();
+): AsyncGenerator<AiStreamEvent> {
+  if (AI_PROVIDER === "gemini") {
+    yield* streamGemini(req, req.webSearch ?? false);
+    return;
+  }
+
+  const { apiKey, model, baseUrl } = requireOpenAiEnv();
 
   const res = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
@@ -153,8 +135,8 @@ export async function* streamAiChat(
     body: JSON.stringify({
       model,
       stream: true,
-      temperature: 0.3,
-      max_tokens: req.maxTokens ?? 1600,
+      ...temperatureFor(model, 0.3),
+      max_completion_tokens: req.maxTokens ?? 8192,
       messages: [
         { role: "system", content: req.system },
         ...req.messages.map((m) => ({ role: m.role, content: m.content })),
@@ -200,7 +182,7 @@ export async function* streamAiChat(
         } catch {
           continue; // tolerate keep-alives / partial frames
         }
-        if (delta) yield delta;
+        if (delta) yield { type: "text", text: delta };
       }
     }
   } finally {

@@ -1,7 +1,7 @@
 name: lexa_mobile
-description: "Lexa — legal information and workflow, on the same backend as web (Phase 12)."
+description: "Lexa: legal information and workflow, on the same backend as the web app."
 publish_to: 'none'
-version: 0.1.0+1
+version: 1.0.0+3
 
 environment:
   sdk: ^3.12.2
@@ -11,9 +11,11 @@ dependencies:
     sdk: flutter
   supabase_flutter: ^2.8.0
   http: ^1.2.0
-  file_picker: ^10.0.0
-  google_fonts: ^6.2.0
   intl: ^0.20.0
+  url_launcher: ^6.3.0
+  shared_preferences: ^2.5.0
+  webview_flutter: ^4.13.0
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:
@@ -22,3 +24,26 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/data/jurisdictions.json
+    - assets/fonts/LICENSE-Inter.txt
+    - assets/fonts/LICENSE-Fraunces.txt
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700
+    - family: Fraunces
+      fonts:
+        - asset: assets/fonts/Fraunces-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Fraunces-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Fraunces-SemiBold.ttf
+          weight: 600

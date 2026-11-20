@@ -2,6 +2,8 @@ import { getViewer } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { isAiConfigured } from "@/lib/ai/env";
+import { aiConsentRequired, needsAiConsent } from "@/lib/ai/consent";
+import { resolveJurisdiction } from "@/lib/legal/jurisdiction";
 import { AiProviderError } from "@/lib/ai/provider";
 import { generateDocument } from "@/lib/ai/document-generation";
 import { AI_ERROR_RETRY, AI_NOT_CONFIGURED } from "@/lib/ai/copy";
@@ -45,6 +47,8 @@ export async function POST(request: Request): Promise<Response> {
     return jsonError("Please sign in to generate documents.", 401);
   }
   const { profile } = viewer;
+
+  if (!viewer.isDemo && needsAiConsent(profile)) return aiConsentRequired();
 
   // Free tier: a monthly allowance of template drafts (Phase 10).
   if (!viewer.isDemo && isSupabaseConfigured) {
@@ -111,10 +115,7 @@ export async function POST(request: Request): Promise<Response> {
         if (!matter) return jsonError("That matter isn't available.", 404);
         matterId = matter.id;
         matterTitle = matter.title;
-        jurisdiction = {
-          country: matter.jurisdiction_country,
-          state: matter.jurisdiction_state,
-        };
+        jurisdiction = resolveJurisdiction(matter, profile);
         const { data: docs } = await supabase
           .from("documents")
           .select("title, ai_annotations")

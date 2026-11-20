@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local backend settings, written by tool/write_local_config.mjs
+config/local.json

@@ -138,6 +138,16 @@ export function IntakeForm({
           desired_outcome: form.desired_outcome,
         }),
       });
+      if (res.status === 428) {
+        // Permission to use AI comes first. Their answers wait here for them.
+        try {
+          sessionStorage.setItem(STASH_PREFIX + token, JSON.stringify(form));
+        } catch {
+          // If storage fails they'll retype.
+        }
+        router.push(`/consent?next=${encodeURIComponent(`/intake/${token}`)}`);
+        return;
+      }
       if (!res.ok) {
         let message = AI_ERROR_RETRY;
         try {

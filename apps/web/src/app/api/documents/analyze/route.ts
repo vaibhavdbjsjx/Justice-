@@ -2,6 +2,8 @@ import { getViewer } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { isAiConfigured } from "@/lib/ai/env";
+import { aiConsentRequired, needsAiConsent } from "@/lib/ai/consent";
+import { resolveJurisdiction } from "@/lib/legal/jurisdiction";
 import { AiProviderError, type AiAttachment } from "@/lib/ai/provider";
 import { analyzeDocument } from "@/lib/ai/document-analysis";
 import {
@@ -20,13 +22,14 @@ import type { Json } from "@/lib/supabase/types";
  * one multimodal structured AI call → persisted analysis (Supabase
  * configured) or an ephemeral result (demo mode).
  *
- * Storage note: the original binary is NOT persisted yet — no cloud Supabase
- * project/storage bucket exists. The verbatim extracted segments + analysis
- * are what the product needs (the side-by-side view renders text, not the
- * binary); blob archival lands with the cloud project (BUILD_LOG deferral).
+ * Hosted functions reject request bodies over roughly 4.5 MB before this code
+ * runs, so a larger file arrives as JSON naming an object the user uploaded to
+ * their own storage folder. It's removed once read: the verbatim segments and
+ * analysis are what the product keeps, not the binary.
  */
 
-const MAX_FILE_BYTES = 10 * 1024 * 1024;
+const MAX_FILE_BYTES = 20 * 1024 * 1024;
+const UPLOAD_BUCKET = "document-uploads";
 const IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 const MAX_TITLE_CHARS = 160;
 
@@ -43,22 +46,76 @@ export async function POST(request: Request): Promise<Response> {
   }
   const { profile } = viewer;
 
+  if (!viewer.isDemo && needsAiConsent(profile)) return aiConsentRequired();
+
   // Document Intelligence is a paid feature (Phase 10; demo previews it).
   if (!viewer.isDemo && (await getViewerTier(viewer)) === "free") {
     return upgradeError(UPGRADE_ANALYSIS);
   }
 
-  let form: FormData;
-  try {
-    form = await request.formData();
-  } catch {
-    return jsonError(DOC_FILE_INVALID, 400);
+  let file: { bytes: ArrayBuffer; name: string; type: string; size: number };
+  let rawTitle: unknown;
+  let requestedMatterId: unknown;
+  let uploadedPath: string | null = null;
+
+  if (request.headers.get("content-type")?.includes("application/json")) {
+    let body: {
+      storagePath?: unknown;
+      filename?: unknown;
+      mimeType?: unknown;
+      title?: unknown;
+      matterId?: unknown;
+    };
+    try {
+      body = (await request.json()) as typeof body;
+    } catch {
+      return jsonError(DOC_FILE_INVALID, 400);
+    }
+    // RLS scopes the read as well; the prefix check keeps the error calm.
+    if (
+      typeof body.storagePath !== "string" ||
+      !body.storagePath.startsWith(`${viewer.user.id}/`) ||
+      !isSupabaseConfigured
+    ) {
+      return jsonError(DOC_FILE_INVALID, 400);
+    }
+    const supabase = await createClient();
+    const { data, error } = await supabase.storage
+      .from(UPLOAD_BUCKET)
+      .download(body.storagePath);
+    if (error || !data) {
+      console.error("[documents] storage download failed:", error);
+      return jsonError(DOC_FILE_INVALID, 400);
+    }
+    uploadedPath = body.storagePath;
+    file = {
+      bytes: await data.arrayBuffer(),
+      name: typeof body.filename === "string" ? body.filename : "document",
+      type: typeof body.mimeType === "string" ? body.mimeType : data.type,
+      size: data.size,
+    };
+    rawTitle = body.title;
+    requestedMatterId = body.matterId;
+  } else {
+    let form: FormData;
+    try {
+      form = await request.formData();
+    } catch {
+      return jsonError(DOC_FILE_INVALID, 400);
+    }
+    const part = form.get("file");
+    if (!(part instanceof File)) return jsonError(DOC_FILE_INVALID, 400);
+    file = {
+      bytes: await part.arrayBuffer(),
+      name: part.name,
+      type: part.type,
+      size: part.size,
+    };
+    rawTitle = form.get("title");
+    requestedMatterId = form.get("matterId");
   }
 
-  const file = form.get("file");
-  if (!(file instanceof File) || file.size === 0) {
-    return jsonError(DOC_FILE_INVALID, 400);
-  }
+  if (file.size === 0) return jsonError(DOC_FILE_INVALID, 400);
   if (file.size > MAX_FILE_BYTES) return jsonError(DOC_FILE_INVALID, 413);
 
   const isPdf = file.type === "application/pdf";
@@ -66,13 +123,11 @@ export async function POST(request: Request): Promise<Response> {
     return jsonError(DOC_FILE_INVALID, 415);
   }
 
-  const rawTitle = form.get("title");
   const fallbackTitle = file.name.replace(/\.[^.]+$/, "").trim() || "Document";
   const title = (
     (typeof rawTitle === "string" && rawTitle.trim()) || fallbackTitle
   ).slice(0, MAX_TITLE_CHARS);
 
-  const requestedMatterId = form.get("matterId");
   const matterIdParam =
     typeof requestedMatterId === "string" && requestedMatterId
       ? requestedMatterId
@@ -97,10 +152,7 @@ export async function POST(request: Request): Promise<Response> {
           .maybeSingle();
         if (!matter) return jsonError("That matter isn't available.", 404);
         matterId = matter.id;
-        jurisdiction = {
-          country: matter.jurisdiction_country,
-          state: matter.jurisdiction_state,
-        };
+        jurisdiction = resolveJurisdiction(matter, profile);
       } else {
         matterId = await ensureGeneralMatter(supabase, viewer.user.id, profile);
       }
@@ -120,7 +172,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   // ---- Analyze -------------------------------------------------------------
-  const base64 = Buffer.from(await file.arrayBuffer()).toString("base64");
+  const base64 = Buffer.from(file.bytes).toString("base64");
   const attachment: AiAttachment = isPdf
     ? { kind: "pdf", filename: file.name || "document.pdf", base64 }
     : { kind: "image", mediaType: file.type, base64 };
@@ -139,6 +191,14 @@ export async function POST(request: Request): Promise<Response> {
       console.error("[documents] unexpected analysis error:", err);
     }
     return jsonError(DOC_ANALYSIS_FAILED, 502);
+  } finally {
+    if (uploadedPath) {
+      const supabase = await createClient();
+      const { error } = await supabase.storage
+        .from(UPLOAD_BUCKET)
+        .remove([uploadedPath]);
+      if (error) console.error("[documents] upload cleanup failed:", error);
+    }
   }
 
   // ---- Persist (skipped in demo mode; a failure never loses the analysis) --

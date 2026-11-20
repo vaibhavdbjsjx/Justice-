@@ -2,12 +2,13 @@
  * Central access to the AI provider, mirroring lib/supabase/env.ts — a missing
  * key fails loudly and once, and early phases keep rendering without it.
  *
- * Providers are auto-detected and swappable without touching provider.ts:
- *   - Gemini (preferred when set): Google's free OpenAI-compatible endpoint, so
- *     the same Chat Completions code path works. Great free-tier launch option.
- *   - OpenAI: used when only OPENAI_API_KEY is set.
- * Set GEMINI_API_KEY (free at https://aistudio.google.com/apikey) OR
- * OPENAI_API_KEY. If both are set, Gemini wins.
+ * Swapping to a stronger key is an env change only, no code:
+ *   - Gemini (preferred when set): GEMINI_API_KEY + optional GEMINI_MODEL, e.g.
+ *     GEMINI_MODEL=gemini-4-argon on a paid key for the flagship reasoning model.
+ *   - OpenAI: OPENAI_API_KEY + optional OPENAI_MODEL, used when no Gemini key.
+ *
+ * Use a PAID key for real users. Google's terms forbid sending personal data to
+ * unpaid Gemini keys and forbid serving the UK/EEA/Switzerland from them.
  */
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
@@ -24,35 +25,83 @@ export const AI_PROVIDER: AiProviderName = GEMINI_API_KEY
 /** True once an AI provider is usable. */
 export const isAiConfigured = AI_PROVIDER !== "none";
 
-const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
+/**
+ * Who answers, in the words shown to users. Apple Guideline 5.1.2(i) requires
+ * naming the third-party AI before sharing data with it, so the consent screens
+ * read this rather than hardcoding a vendor that can change with the key.
+ */
+export const AI_PROVIDER_LABEL: Record<AiProviderName, string> = {
+  gemini: "Google (Gemini)",
+  openai: "OpenAI",
+  none: "our AI provider",
+};
+
+/** Web-grounded answers with real sources. AI_WEB_SEARCH=off disables them. */
+export const isWebSearchEnabled = process.env.AI_WEB_SEARCH !== "off";
+
+/**
+ * On Gemini's free tier Google may use what is sent to improve its products,
+ * and people may review it. Until GEMINI_PAID_TIER=true, the privacy policy and
+ * consent screens say so.
+ */
+export const aiProviderMayReviewContent =
+  AI_PROVIDER === "gemini" && process.env.GEMINI_PAID_TIER !== "true";
+
+export const AI_REVIEW_NOTICE =
+  "On the free tier Google may use what's sent to improve its products, and people at Google may read it. Please leave out sensitive details such as ID numbers, bank details, or health information.";
+
+/**
+ * Per-request budget, under the platform's function limit so a slow model ends
+ * in calm retry copy rather than a raw gateway error. Netlify's synchronous
+ * functions run for about 60 seconds; AI_TIMEOUT_MS overrides this elsewhere.
+ */
+export const AI_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS) || 55_000;
+
+const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
 const OPENAI_BASE_URL = "https://api.openai.com/v1";
 
-/** Resolved request config for the active provider. */
-export function requireAiEnv(): {
+/**
+ * Candidate models, tried in order when one is retired or unavailable. The
+ * previous hardcoded default (gemini-2.0-flash) was shut down in June 2026 and
+ * took every AI feature with it; `gemini-flash-latest` is Google's rolling alias,
+ * and the pinned models behind it keep answers flowing if the alias ever fails.
+ */
+export function requireGeminiEnv(): {
+  apiKey: string;
+  baseUrl: string;
+  models: string[];
+} {
+  if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not set.");
+  const configured = process.env.GEMINI_MODEL?.trim();
+  return {
+    apiKey: GEMINI_API_KEY,
+    baseUrl: process.env.GEMINI_BASE_URL || GEMINI_BASE_URL,
+    models: [
+      ...new Set(
+        [
+          configured,
+          "gemini-flash-latest",
+          "gemini-3.8-flash",
+          "gemini-3.6-flash",
+        ].filter((m): m is string => Boolean(m)),
+      ),
+    ],
+  };
+}
+
+export function requireOpenAiEnv(): {
   apiKey: string;
   model: string;
   baseUrl: string;
-  provider: AiProviderName;
 } {
-  if (GEMINI_API_KEY) {
-    return {
-      apiKey: GEMINI_API_KEY,
-      // Fast, multimodal, free-tier friendly. Override with GEMINI_MODEL.
-      model: process.env.GEMINI_MODEL || "gemini-2.0-flash",
-      baseUrl: process.env.AI_BASE_URL || GEMINI_BASE_URL,
-      provider: "gemini",
-    };
+  if (!OPENAI_API_KEY) {
+    throw new Error(
+      "AI provider is not configured. Set GEMINI_API_KEY or OPENAI_API_KEY.",
+    );
   }
-  if (OPENAI_API_KEY) {
-    return {
-      apiKey: OPENAI_API_KEY,
-      model: process.env.OPENAI_MODEL || "gpt-4o",
-      baseUrl: process.env.OPENAI_BASE_URL || OPENAI_BASE_URL,
-      provider: "openai",
-    };
-  }
-  throw new Error(
-    "AI provider is not configured. Set GEMINI_API_KEY (free at " +
-      "aistudio.google.com/apikey) or OPENAI_API_KEY.",
-  );
+  return {
+    apiKey: OPENAI_API_KEY,
+    model: process.env.OPENAI_MODEL || "gpt-6-astra",
+    baseUrl: process.env.OPENAI_BASE_URL || OPENAI_BASE_URL,
+  };
 }

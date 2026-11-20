@@ -1,11 +1,8 @@
-/// Build-time configuration (no secrets in the repo):
+/// Build-time configuration. Only public values live here: the Supabase anon key
+/// is safe in a client because row-level security protects the data, and every
+/// secret key stays on the server.
 ///
-/// flutter run --dart-define=SUPABASE_URL=https://xyz.supabase.co \
-///             --dart-define=SUPABASE_ANON_KEY=eyJ... \
-///             --dart-define=LEXA_API_BASE=https://app.lexa.com
-///
-/// The API base is the deployed Next.js app — AI calls go through its route
-/// handlers (keys stay server-side), authenticated with the Supabase JWT.
+///   flutter run --dart-define-from-file=config/production.json
 class AppConfig {
   const AppConfig._();
 

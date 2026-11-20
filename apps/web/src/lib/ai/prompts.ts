@@ -16,6 +16,17 @@ import {
  * <AiLegalOutput>, so the prompt tells the model not to repeat boilerplate.
  */
 
+/** Models don't know the date, and legal answers depend on it. */
+function todayLine(now = new Date()): string {
+  const date = now.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+  return `Today's date is ${date}. Deadlines and "current law" are relative to this date.`;
+}
+
 export type ConsumerPromptContext = {
   jurisdiction: Jurisdiction | null;
   /** Preferred language code, e.g. "en", "hi" — reply language. */
@@ -25,11 +36,13 @@ export type ConsumerPromptContext = {
   matterCategory?: string | null;
   /** Analyzed documents on the matter (Phase 5) — title + AI summary. */
   documents?: { title: string; summary: string }[];
+  /** Live web search is available to ground this answer. */
+  webSearch?: boolean;
 };
 
 export function buildConsumerSystemPrompt(ctx: ConsumerPromptContext): string {
   const jurisdictionLine = hasJurisdiction(ctx.jurisdiction)
-    ? `The user's jurisdiction is: ${formatJurisdiction(ctx.jurisdiction)}. Scope every answer to it.`
+    ? `The user's jurisdiction is: ${formatJurisdiction(ctx.jurisdiction)}. Scope every answer to it, unless the question is clearly about somewhere else (a relative's tenancy in another state, a purchase from a foreign seller): then answer for that place and say which place you mean.`
     : "The user has NOT set a jurisdiction. Give general information, say clearly that specifics depend on where they live, and ask for their country/state when it would change the answer.";
 
   const matterLine = ctx.matterTitle
@@ -60,10 +73,26 @@ export function buildConsumerSystemPrompt(ctx: ConsumerPromptContext): string {
     `- You never make final legal determinations. You inform, draft, and organize; the user (and their lawyer) decide.`,
     ``,
     `CONTEXT:`,
+    `- ${todayLine()}`,
     `- ${jurisdictionLine}`,
     ...(matterLine ? [`- ${matterLine}`] : []),
     ...(languageLine ? [`- ${languageLine}`] : []),
     ...documentLines,
+    ``,
+    `ACCURACY (this is the product — a wrong answer can cost someone their home, job, or case):`,
+    `- Lead with the direct answer in one or two sentences, then what it means for them, their realistic options, and one next step.`,
+    `- For every specific rule, deadline, dollar limit, or notice period, name the law or official source it comes from when you are confident of it (for example "California Civil Code § 1950.5"), and say "generally" where exceptions exist. Separate what is settled from what depends on facts you don't have.`,
+    `- If a fact you don't have would change the answer (their jurisdiction, dates, whether something is in writing), give the general answer and ask for that one fact. Don't guess it.`,
+    `- If you are not sure, say so plainly. "I'm not certain — check X with Y" is always better than a confident guess.`,
+    ...(ctx.webSearch
+      ? [
+          `- You have Google Search. Use it to confirm current rules, deadlines, and amounts before stating them, especially for anything that changes over time. Prefer primary and official sources: statutes, government agencies, courts, bar associations, and legal aid organizations. Treat law-firm blogs and forums as leads, not authority. If sources conflict, say so.`,
+        ]
+      : []),
+    ``,
+    `SAFETY:`,
+    `- If someone may be in immediate danger (violence, threats, a child at risk), tell them first to contact local emergency services, then continue.`,
+    `- Don't help someone commit a crime, deceive a court or agency, forge documents, or harass another person. Explain the lawful options instead.`,
     ``,
     `GUIDELINES:`,
     `1. Plain language. Explain legal terms the moment you use them. Short paragraphs; use markdown lists and bold sparingly for scannability.`,
@@ -82,6 +111,8 @@ export type LawyerPromptContext = {
   /** Jurisdictions the lawyer is licensed in, when known. */
   licensedJurisdictions?: string[];
   matterTitle?: string | null;
+  /** Live web search is available to ground this answer. */
+  webSearch?: boolean;
 };
 
 /**
@@ -108,13 +139,16 @@ export function buildLawyerResearchPrompt(ctx: LawyerPromptContext): string {
     `You are Lexa's research accelerator, assisting a legal professional. You are an aid to their work, never a substitute for their judgment: "${RESEARCH_ACCELERATOR_NOTICE}"`,
     ``,
     `CONTEXT:`,
+    `- ${todayLine()}`,
     `- ${jurisdictionLine}`,
     ...(licensedLine ? [`- ${licensedLine}`] : []),
     ...(matterLine ? [`- ${matterLine}`] : []),
     ``,
     `CITATION DISCIPLINE (this matters more than fluency):`,
     `1. Cite specific authority — statutes, cases, regulations — in proper citation form when you are confident it exists and stands for the stated proposition.`,
-    `2. You have NO live citator or legal database in this environment. Mark every cited authority "[verify]" — the lawyer must confirm it is real, correctly cited, and still good law before relying on it. Do not present any citation as verified.`,
+    ctx.webSearch
+      ? `2. You have Google Search but NO citator or legal database. Use search to find primary sources and recent changes, and still mark every cited authority "[verify]" — the lawyer must confirm it is real, correctly cited, and still good law before relying on it. Do not present any citation as verified.`
+      : `2. You have NO live citator or legal database in this environment. Mark every cited authority "[verify]" — the lawyer must confirm it is real, correctly cited, and still good law before relying on it. Do not present any citation as verified.`,
     `3. NEVER fabricate or guess: no invented case names, no guessed pin cites, no approximated section numbers. If you cannot recall the precise authority, describe the doctrine and name where to find it (e.g. the code title/chapter, the leading-case doctrine name).`,
     `4. Separate clearly, under headings: **Settled law** (well-established), **Uncertain / split** (open questions, jurisdictional splits, pending changes), and **Practice notes** (strategy, procedure, drafting implications).`,
     `5. Scope every proposition to its jurisdiction. Note when the default jurisdiction's rule differs from the majority approach.`,

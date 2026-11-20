@@ -46,15 +46,25 @@ export async function completeOnboarding(
 
   if (input.role === "lawyer") {
     const licensed = countryName ? [{ country: countryName, state: region }] : [];
-    const { error: lpErr } = await supabase.from("lawyer_profiles").upsert(
-      {
-        user_id: user.id,
-        practice_areas: (input.practiceAreas ?? []) as unknown as string[],
-        licensed_jurisdictions: licensed,
-        bar_number: input.barNumber?.trim() || null,
-      },
-      { onConflict: "user_id" },
-    );
+    // Lawyers may write these columns but not the row's owner, so update an
+    // existing row without touching user_id (an upsert would rewrite it and be
+    // refused), and insert only when there is none yet.
+    const details = {
+      practice_areas: (input.practiceAreas ?? []) as unknown as string[],
+      licensed_jurisdictions: licensed,
+      bar_number: input.barNumber?.trim() || null,
+    };
+    const updated = await supabase
+      .from("lawyer_profiles")
+      .update(details)
+      .eq("user_id", user.id)
+      .select("user_id");
+    let lpErr = updated.error;
+    if (!lpErr && (updated.data ?? []).length === 0) {
+      ({ error: lpErr } = await supabase
+        .from("lawyer_profiles")
+        .insert({ user_id: user.id, ...details }));
+    }
     if (lpErr) {
       return {
         error:

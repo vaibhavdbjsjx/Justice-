@@ -21,6 +21,9 @@ const reviewBeforeUseBody =
     'a licensed lawyer in the relevant jurisdiction review it before you '
     'sign, send, or file it.';
 
+const researchNotice =
+    'AI research accelerator: an aid to your work, not a substitute for your professional judgment. Verify every citation before relying on it.';
+
 const professionalHelpNudge =
     'This looks like it could carry significant consequences. Consider '
     'speaking with a licensed lawyer in your jurisdiction before taking '

@@ -1,0 +1,114 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      { "locale" : "en_US", "policyText" : "", "policyURL" : "" }
+    ]
+  },
+  "identifier" : "4E7B3A10",
+  "nonRenewingSubscriptions" : [],
+  "products" : [],
+  "settings" : {
+    "_applicationInternalID" : "6755000000",
+    "_developerTeamID" : "LNL8GARN23",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 0,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : []
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21500001",
+      "localizations" : [],
+      "name" : "Lexa",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "9.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "6755000001",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Unlimited answers, matters, drafts, and document analysis.",
+              "displayName" : "Lexa Plus",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.vaibhavsg.lexa.plus.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Lexa Plus Monthly",
+          "subscriptionGroupID" : "21500001",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "39.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6755000002",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Research and drafting tools for legal professionals, plus everything in Plus.",
+              "displayName" : "Lexa Professional",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.vaibhavsg.lexa.professional.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Lexa Professional Monthly",
+          "subscriptionGroupID" : "21500001",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "79.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "6755000003",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Unlimited answers, matters, drafts, and document analysis.",
+              "displayName" : "Lexa Plus Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.vaibhavsg.lexa.plus.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Lexa Plus Yearly",
+          "subscriptionGroupID" : "21500001",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "349.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6755000004",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Research and drafting tools for legal professionals, plus everything in Plus.",
+              "displayName" : "Lexa Professional Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.vaibhavsg.lexa.professional.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Lexa Professional Yearly",
+          "subscriptionGroupID" : "21500001",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : { "major" : 4, "minor" : 0 }
+}

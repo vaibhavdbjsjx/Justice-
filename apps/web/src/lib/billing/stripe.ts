@@ -80,6 +80,24 @@ export async function createCheckoutSession(input: {
   });
 }
 
+/** Ends a subscription immediately. Used when an account is deleted. */
+export async function cancelSubscription(subscriptionId: string): Promise<void> {
+  const { secretKey } = requireBillingEnv();
+  const res = await fetch(
+    `${STRIPE_API_BASE}/v1/subscriptions/${encodeURIComponent(subscriptionId)}`,
+    { method: "DELETE", headers: { Authorization: `Bearer ${secretKey}` } },
+  );
+  // Already gone is the outcome we wanted.
+  if (!res.ok && res.status !== 404) {
+    const detail = await res.text().catch(() => "");
+    throw new StripeError(
+      `Stripe cancel failed (${res.status})`,
+      res.status,
+      detail.slice(0, 2000),
+    );
+  }
+}
+
 export async function createPortalSession(input: {
   customerId: string;
   returnUrl: string;

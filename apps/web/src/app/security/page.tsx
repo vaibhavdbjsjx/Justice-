@@ -35,15 +35,15 @@ export default function SecurityPage() {
 
       <h2 id="authentication">Authentication</h2>
       <p>
-        Sign-in is handled by a dedicated identity provider with support for
-        email, Google, and Apple. We never store plaintext passwords. Sessions
+        Sign-in is handled by a dedicated identity provider using your email
+        and password or Sign in with Apple. We never store plaintext passwords. Sessions
         are managed with secure, HTTP-only cookies and refreshed automatically.
       </p>
 
       <h2 id="payments">Payments</h2>
       <p>
-        Payments are processed by Stripe, a PCI-DSS Level 1 certified provider.
-        Your full card details are sent directly to Stripe and never touch our
+        Payments are processed by Stripe on the web and by Apple in the iOS app.
+        Your full card details go directly to them and never touch our
         servers.
       </p>
 

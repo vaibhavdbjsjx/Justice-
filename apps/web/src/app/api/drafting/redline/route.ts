@@ -2,6 +2,7 @@ import { getViewer } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { isAiConfigured } from "@/lib/ai/env";
+import { aiConsentRequired, needsAiConsent } from "@/lib/ai/consent";
 import { AiProviderError } from "@/lib/ai/provider";
 import { redlineForLawyer } from "@/lib/ai/lawyer-drafting";
 import { AI_ERROR_RETRY, AI_NOT_CONFIGURED } from "@/lib/ai/copy";
@@ -40,6 +41,8 @@ export async function POST(request: Request): Promise<Response> {
     return jsonError("Please sign in to use the drafting assistant.", 401);
   }
   const { profile } = viewer;
+
+  if (!viewer.isDemo && needsAiConsent(profile)) return aiConsentRequired();
 
   if (profile.role !== "lawyer" && !viewer.isDemo) {
     return jsonError(

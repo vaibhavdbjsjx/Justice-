@@ -15,30 +15,37 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { DisclaimerBanner } from "@/components/compliance/disclaimer-banner";
 import { Reveal } from "@/components/marketing/reveal";
-import { LiveChatDemo } from "@/components/marketing/live-chat-demo";
+import { Hero3D } from "@/components/marketing/hero-3d";
+import { Tilt3D } from "@/components/marketing/tilt";
+import { HeadlineReveal } from "@/components/marketing/headline-reveal";
+import { ScrollStory } from "@/components/marketing/scroll-story";
+import { IslandShowcase } from "@/components/marketing/island-showcase";
+import { FeatureBento } from "@/components/marketing/feature-bento";
+import { Faq } from "@/components/marketing/faq";
+import { JurisdictionMarquee } from "@/components/marketing/jurisdiction-marquee";
 import { DocIntelligenceDemo } from "@/components/marketing/doc-intelligence-demo";
 import { AudienceTabs } from "@/components/marketing/audience-tabs";
 
 const credibility = [
   {
     Icon: Globe2,
-    title: "Jurisdiction-aware",
-    body: "Every answer is scoped to your country and state — never generic advice.",
-  },
-  {
-    Icon: ShieldCheck,
-    title: "Provably isolated",
-    body: "Row-level security on every table, verified by 60 automated tests.",
-  },
-  {
-    Icon: Layers,
-    title: "Three platforms",
-    body: "One backend serving web, desktop, and mobile from a shared design system.",
+    title: "Scoped to where you live",
+    body: "Answers follow your country and state, and say so when local detail is thin.",
   },
   {
     Icon: MessageSquareQuote,
-    title: "Information, not advice",
-    body: "The disclaimer is structural — no AI output can ship without it.",
+    title: "Sources you can check",
+    body: "Answers point to the statutes and official pages behind them whenever they can.",
+  },
+  {
+    Icon: ShieldCheck,
+    title: "Private by design",
+    body: "Your matters are isolated at the database level. We never sell your data.",
+  },
+  {
+    Icon: Layers,
+    title: "Everywhere you are",
+    body: "The web, iPhone, iPad, and Mac, in sync on one account.",
   },
 ];
 
@@ -66,7 +73,7 @@ const tiers = [
     audience: "For people",
     price: "$0",
     cadence: "forever",
-    features: ["Limited chats each month", "1 active matter", "Basic document generation"],
+    features: ["25 questions a month", "1 active matter", "3 document drafts a month"],
     cta: "Get started",
     href: "/get-started",
     featured: false,
@@ -77,10 +84,9 @@ const tiers = [
     price: "$9.99",
     cadence: "per month",
     features: [
-      "Unlimited chat & matters",
-      "Full document generation",
+      "Unlimited questions and matters",
+      "Unlimited document drafts",
       "Document Intelligence",
-      "Priority support",
     ],
     cta: "Start Plus",
     href: "/get-started?plan=plus",
@@ -131,12 +137,9 @@ export default function HomePage() {
                 </Badge>
               </div>
 
-              <h1
-                className="mt-5 animate-fade-in-up font-serif text-4xl font-medium leading-[1.06] tracking-tight text-foreground sm:text-5xl lg:text-[3.5rem]"
-                style={{ animationDelay: "80ms" }}
-              >
-                Understand your legal situation{" "}
-                <span className="text-brand-gradient">in minutes</span>.
+              <h1 className="font-display mt-5 text-[2.75rem] leading-[1.02] text-foreground sm:text-6xl lg:text-[4.25rem]">
+                <HeadlineReveal text="Understand your legal situation" />{" "}
+                <HeadlineReveal text="in minutes." delay={420} emphasis />
               </h1>
 
               <p
@@ -144,8 +147,8 @@ export default function HomePage() {
                 style={{ animationDelay: "160ms" }}
               >
                 Lexa turns dense legal language into plain answers, explains the
-                documents you’re handed, and drafts what you need — all scoped to your
-                jurisdiction. Built for people, and the lawyers who help them.
+                documents you’re handed, and drafts what you need, all scoped to where
+                you live. Built for people, and the lawyers who help them.
               </p>
 
               <div
@@ -173,7 +176,7 @@ export default function HomePage() {
             </div>
 
             <div className="flex items-center animate-fade-in" style={{ animationDelay: "200ms" }}>
-              <LiveChatDemo />
+              <Hero3D />
             </div>
           </div>
         </section>
@@ -192,13 +195,16 @@ export default function HomePage() {
                 </Reveal>
               ))}
             </div>
-            <Reveal delay={280}>
-              <p className="mt-10 border-t border-border pt-6 text-center text-xs tracking-wide text-muted">
-                Engineered with Next.js · Supabase · PostgreSQL RLS · Tailwind · Tauri · Flutter
-              </p>
-            </Reveal>
           </div>
         </section>
+
+        <JurisdictionMarquee />
+
+        <ScrollStory />
+
+        <FeatureBento />
+
+        <IslandShowcase />
 
         {/* ------------------------------ Signature: Doc Intelligence */}
         <section id="document-intelligence" className="scroll-mt-20">
@@ -208,7 +214,7 @@ export default function HomePage() {
                 <Badge tone="accent" className="mx-auto">
                   Signature feature
                 </Badge>
-                <h2 className="mt-4 font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">
+                <h2 className="font-display mt-4 text-4xl text-foreground sm:text-5xl">
                   See what the fine print actually says
                 </h2>
                 <p className="mt-3 text-muted">
@@ -231,7 +237,7 @@ export default function HomePage() {
             <Reveal>
               <div className="max-w-xl">
                 <Badge tone="neutral">How it works</Badge>
-                <h2 className="mt-4 font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">
+                <h2 className="font-display mt-4 text-4xl text-foreground sm:text-5xl">
                   From confusion to a clear next step
                 </h2>
               </div>
@@ -240,11 +246,13 @@ export default function HomePage() {
             <div className="mt-12 grid gap-6 md:grid-cols-3">
               {steps.map((s, i) => (
                 <Reveal key={s.n} delay={i * 100}>
-                  <div className="relative h-full rounded-xl border border-border bg-background p-6 transition-colors duration-200 hover:border-accent">
-                    <span className="font-serif text-2xl font-medium text-accent">{s.n}</span>
-                    <h3 className="mt-3 font-medium text-foreground">{s.title}</h3>
-                    <p className="mt-1.5 text-sm leading-relaxed text-muted">{s.body}</p>
-                  </div>
+                  <Tilt3D>
+                    <div className="relative h-full rounded-xl border border-border bg-background p-6 transition-colors duration-200 hover:border-accent">
+                      <span className="font-serif text-2xl font-medium text-accent">{s.n}</span>
+                      <h3 className="mt-3 font-medium text-foreground">{s.title}</h3>
+                      <p className="mt-1.5 text-sm leading-relaxed text-muted">{s.body}</p>
+                    </div>
+                  </Tilt3D>
                 </Reveal>
               ))}
             </div>
@@ -256,7 +264,7 @@ export default function HomePage() {
           <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8">
             <Reveal>
               <div className="mx-auto max-w-2xl text-center">
-                <h2 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">
+                <h2 className="font-display text-4xl text-foreground sm:text-5xl">
                   One platform, two very different jobs
                 </h2>
                 <p className="mt-3 text-muted">
@@ -280,7 +288,7 @@ export default function HomePage() {
                 <Badge tone="neutral" className="mx-auto">
                   Pricing
                 </Badge>
-                <h2 className="mt-4 font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">
+                <h2 className="font-display mt-4 text-4xl text-foreground sm:text-5xl">
                   Simple plans for both sides
                 </h2>
                 <p className="mt-3 text-muted">
@@ -303,7 +311,7 @@ export default function HomePage() {
                     <div className="p-6">
                       {tier.featured && (
                         <Badge tone="accent" className="absolute right-6 top-6">
-                          Most popular
+                          Best for most people
                         </Badge>
                       )}
                       <p className="text-xs font-medium uppercase tracking-wide text-muted">
@@ -349,11 +357,13 @@ export default function HomePage() {
             </div>
 
             <p className="mt-6 text-center text-xs text-muted">
-              Plus a ~15% marketplace commission when a consumer hires a lawyer found
+              Cancel anytime. Lawyers pay a commission of about 15% on clients found
               through Lexa.
             </p>
           </div>
         </section>
+
+        <Faq />
 
         {/* ---------------------------------------------- Closing CTA */}
         <section className="border-t border-border">
@@ -369,7 +379,7 @@ export default function HomePage() {
                   }}
                 />
                 <div className="relative">
-                  <h2 className="mx-auto max-w-2xl font-serif text-3xl font-medium leading-tight tracking-tight text-primary-foreground sm:text-4xl">
+                  <h2 className="font-display mx-auto max-w-2xl text-4xl leading-tight text-primary-foreground sm:text-5xl">
                     Stop guessing what your legal documents mean.
                   </h2>
                   <p className="mx-auto mt-4 max-w-lg text-primary-foreground/85">

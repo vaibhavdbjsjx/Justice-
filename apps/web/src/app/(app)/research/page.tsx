@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { RESEARCH_CATEGORY } from "@/lib/matters/default-matter";
 import { ChatScreen, type UiMessage } from "@/components/chat/chat-screen";
+import { metaFromStored } from "@/lib/ai/stream-meta";
 
 export const metadata: Metadata = { title: "Research" };
 
@@ -46,7 +47,7 @@ export default async function ResearchPage() {
     if (matter) {
       const { data: rows } = await supabase
         .from("chat_messages")
-        .select("id, role, content")
+        .select("id, role, content, citations")
         .eq("matter_id", matter.id)
         .order("created_at", { ascending: true })
         .limit(200);
@@ -54,6 +55,7 @@ export default async function ResearchPage() {
         id: r.id,
         role: r.role,
         content: r.content,
+        meta: metaFromStored(r.citations),
       }));
     }
   }

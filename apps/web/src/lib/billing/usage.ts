@@ -27,6 +27,21 @@ export async function countChatMessagesThisMonth(
   return count ?? 0;
 }
 
+/** User-authored chat messages since a moment, for burst limiting. */
+export async function countChatMessagesSince(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  sinceIso: string,
+): Promise<number> {
+  const { count } = await supabase
+    .from("chat_messages")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("role", "user")
+    .gte("created_at", sinceIso);
+  return count ?? 0;
+}
+
 /** Active matters the user opened themselves (the defaults don't count). */
 export async function countActiveSelfMatters(
   supabase: SupabaseClient<Database>,

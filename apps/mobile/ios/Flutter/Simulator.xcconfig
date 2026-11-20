@@ -1,0 +1,7 @@
+// Xcode 27's lipo rejects `lipo <file> -verify_arch arm64 x86_64` with
+// "-verify_arch requires exactly one input file", which breaks Flutter's
+// thinFramework step on universal simulator builds ("Failed to copy Flutter
+// framework"). Building the simulator for arm64 alone avoids that multi-arch
+// call. Device and App Store builds are arm64-only already, so they are
+// unaffected. Remove this once the installed Flutter handles the new lipo.
+ARCHS[sdk=iphonesimulator*] = arm64

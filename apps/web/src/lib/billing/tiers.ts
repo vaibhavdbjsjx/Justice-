@@ -32,16 +32,16 @@ export const TIER_FEATURES: Record<"plus" | "professional", string[]> = {
   plus: [
     "Unlimited assistant conversations",
     "Unlimited matters, organized with deadlines",
-    "Full document generation — every template",
-    "Document Intelligence: upload and understand any legal document",
-    "Priority answers during busy hours",
+    "Unlimited drafts from every template",
+    "Document Intelligence for any legal document",
   ],
   professional: [
+    "Everything in Plus",
     "Research accelerator with citation discipline",
-    "Drafting assistant — first drafts and redlines",
-    "Client intake links with triage-to-brief",
-    "Client & case management with communication log",
-    "Marketplace profile, discoverable by consumers",
+    "Drafting assistant for first drafts and redlines",
+    "Client intake links that become case briefs",
+    "Client and case management with secure messaging",
+    "A profile in the lawyer directory, once verified",
   ],
 };
 

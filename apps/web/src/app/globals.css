@@ -335,6 +335,63 @@
   background-size: 56px 56px;
 }
 
+/* ---- 3D scene primitives (Hero3D) ---------------------------------------
+   Genuine depth via perspective + preserve-3d. Rotation of the scene alone
+   produces real parallax because layers sit at different translateZ. All motion
+   is transform-only (compositor, 60fps) and neutralised under reduced-motion by
+   the global rule above. Float lives on an INNER element so it never overwrites
+   a layer's translateZ. */
+@utility scene-3d {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+@keyframes lm-float {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -9px, 0); }
+}
+@utility animate-float {
+  animation: lm-float 7s var(--ease-in-out-soft) infinite;
+  will-change: transform;
+}
+
+@keyframes lm-sheen {
+  0% { transform: translateX(-120%) skewX(-18deg); opacity: 0; }
+  12% { opacity: 0.55; }
+  26% { transform: translateX(240%) skewX(-18deg); opacity: 0; }
+  100% { transform: translateX(240%) skewX(-18deg); opacity: 0; }
+}
+@utility animate-sheen {
+  animation: lm-sheen 6.5s var(--ease-in-out-soft) infinite;
+}
+
+/* Display type: the Fraunces optical size built for large settings. */
+@utility font-display {
+  font-family: "Fraunces Variable", Georgia, "Times New Roman", serif;
+  font-optical-sizing: auto;
+  font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0;
+  font-weight: 450;
+  letter-spacing: -0.028em;
+  text-wrap: balance;
+}
+
+@keyframes lm-marquee {
+  to { transform: translate3d(-50%, 0, 0); }
+}
+@utility animate-marquee {
+  animation: lm-marquee 60s linear infinite;
+}
+
+/* Words rising into place, for the hero headline. */
+@keyframes lm-word-rise {
+  from { opacity: 0; transform: translate3d(0, 0.42em, 0) rotateX(-28deg); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) rotateX(0); }
+}
+@utility animate-word-rise {
+  animation: lm-word-rise 0.9s var(--ease-refined) both;
+  transform-origin: 50% 100%;
+}
+
 /* Restrained brand gradient, reserved for a single emphasized phrase. */
 @utility text-brand-gradient {
   background-image: linear-gradient(

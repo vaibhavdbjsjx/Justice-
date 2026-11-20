@@ -25,3 +25,18 @@ export function shortJurisdiction(j: Jurisdiction | null | undefined): string {
 export function hasJurisdiction(j: Jurisdiction | null | undefined): boolean {
   return Boolean(j && j.country);
 }
+
+/**
+ * The jurisdiction an answer should be scoped to: the matter's own when it has
+ * one, otherwise the person's. Matters can be created without a jurisdiction, and
+ * those must not silently erase the one on the profile.
+ */
+export function resolveJurisdiction(
+  matter: { jurisdiction_country: string | null; jurisdiction_state: string | null } | null,
+  profile: { country: string | null; state_province: string | null },
+): Jurisdiction {
+  if (matter?.jurisdiction_country) {
+    return { country: matter.jurisdiction_country, state: matter.jurisdiction_state };
+  }
+  return { country: profile.country, state: profile.state_province };
+}

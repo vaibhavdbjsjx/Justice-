@@ -8,7 +8,7 @@ A premium, dual-audience **legal information & workflow platform**. Plain-langua
 guidance and document intelligence for consumers; a research + drafting accelerator
 for lawyers. Jurisdiction-aware, compliance-first, across **web · desktop · mobile**.
 
-`Next.js 16` · `Tailwind v4` · `Supabase (Postgres + RLS)` · `Tauri` · `Flutter` · `OpenAI`
+`Next.js 16` · `Tailwind v4` · `Supabase (Postgres + RLS)` · `Flutter` · `Gemini` · `StoreKit 2`
 
 > **Lexa provides legal _information_, not legal advice, and does not create an
 > attorney–client relationship.** This framing is built into the product logic, not
@@ -56,12 +56,16 @@ This is the product's "wow" moment and gets extra design care.
 
 - **Web / Desktop** — Next.js 16 (App Router, Turbopack), React 19, Tailwind CSS v4,
   self-hosted variable fonts (Inter + Fraunces), packaged for desktop with **Tauri v2**.
-- **Mobile** — Flutter, consuming the same backend; design tokens are code-generated from
-  one canonical `tokens.json` so web and mobile stay in visual lockstep.
+- **iOS, iPadOS, and Mac** — Flutter with native Swift for Live Activities and the
+  Dynamic Island, StoreKit 2 subscriptions, document scanning, and Sign in with
+  Apple. One build runs on iPhone, iPad, and Apple silicon Macs. Design tokens are
+  generated from one `tokens.json`, so web and app stay in step.
 - **Backend** — Supabase (Postgres, Auth, Storage) with RLS on every table.
-- **AI** — provider-agnostic layer (currently OpenAI) for chat, vision document analysis,
-  and strict-schema structured output.
-- **Payments** — Stripe (tiered subscriptions + marketplace commission scaffolding).
+- **AI** — Google Gemini by default, with Google Search grounding so answers cite their
+  sources. OpenAI works as an alternative. Covers chat, document analysis (PDFs and
+  photos), and strict-schema structured output.
+- **Payments** — App Store In-App Purchase in the app, verified on the server. Stripe
+  on the web.
 
 ## Monorepo layout
 
@@ -93,8 +97,22 @@ cp .env.example .env.local   # then fill in your keys
 npm run dev                  # http://localhost:3000
 ```
 
-> Without Supabase/OpenAI keys the app runs in a **safe preview mode** with demo data,
+> Without Supabase or AI keys the app runs in a **safe preview mode** with demo data,
 > so you can click through the entire authenticated UI locally.
+
+### The whole stack, locally
+
+`supabase/tests/local-backend.mjs` runs real Postgres with the real migrations and
+RLS, plus the parts of Supabase Auth, PostgREST, and Storage the apps use, and a
+scripted stand-in for Gemini. No Docker, cloud account, or AI spend is needed.
+
+```bash
+node supabase/tests/local-backend.mjs        # API on :54321, test accounts seeded
+node supabase/tests/run-web-local.mjs        # web on :3100, wired to it
+node apps/mobile/tool/write_local_config.mjs # app config for the local stack
+cd apps/mobile && flutter test test_e2e/walkthrough_test.dart \
+  --dart-define-from-file=config/local.json  # every screen, every device size
+```
 
 ### Environment variables
 
@@ -102,7 +120,11 @@ npm run dev                  # http://localhost:3000
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Auth, data | From your Supabase project |
 | `SUPABASE_SERVICE_ROLE_KEY` | Webhooks, trusted writes | **Server-only. Never expose.** |
-| `OPENAI_API_KEY` | AI features | Chat, document analysis, drafting |
+| `GEMINI_API_KEY` | AI features | Free or paid. On a free key the app discloses Google's data use |
+| `GEMINI_PAID_TIER` | Optional | `true` on a paid key, to drop the free-tier notice |
+| `GEMINI_MODEL` | Optional | Pin a model; otherwise current Flash models are tried in order |
+| `OPENAI_API_KEY` | Optional | Used only when no Gemini key is set |
+| `APPLE_APP_ID` | App Store purchases | The numeric Apple ID of the app |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | Billing | Phase 10 |
 | `NEXT_PUBLIC_APP_URL` | Redirects | e.g. `http://localhost:3000` |
 

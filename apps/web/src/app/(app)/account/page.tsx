@@ -6,6 +6,9 @@ import { signOut } from "@/lib/auth/actions";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DeleteAccount } from "@/components/account/delete-account";
+import { AiConsentSettings } from "@/components/account/ai-consent-settings";
+import { AI_PROVIDER, AI_PROVIDER_LABEL } from "@/lib/ai/env";
+import { needsAiConsent } from "@/lib/ai/consent";
 import { formatJurisdiction } from "@/lib/legal/jurisdiction";
 import { languageName } from "@/lib/i18n/languages";
 import type { UserRole } from "@/lib/supabase/types";
@@ -44,6 +47,13 @@ export default async function AccountPage() {
           />
           <Row label="Language" value={languageName(p?.preferred_language)} />
         </dl>
+      </Card>
+
+      <Card className="p-5">
+        <AiConsentSettings
+          granted={!p || !needsAiConsent(p)}
+          providerLabel={AI_PROVIDER_LABEL[AI_PROVIDER]}
+        />
       </Card>
 
       {/* Sign out */}

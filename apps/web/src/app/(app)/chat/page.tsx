@@ -3,6 +3,7 @@ import { getViewer } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { ChatScreen, type UiMessage } from "@/components/chat/chat-screen";
+import { metaFromStored } from "@/lib/ai/stream-meta";
 
 export const metadata: Metadata = { title: "Assistant" };
 
@@ -31,7 +32,7 @@ export default async function ChatPage() {
     if (matter) {
       const { data: rows } = await supabase
         .from("chat_messages")
-        .select("id, role, content")
+        .select("id, role, content, citations")
         .eq("matter_id", matter.id)
         .order("created_at", { ascending: true })
         .limit(200);
@@ -39,6 +40,7 @@ export default async function ChatPage() {
         id: r.id,
         role: r.role,
         content: r.content,
+        meta: metaFromStored(r.citations),
       }));
     }
   }

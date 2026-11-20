@@ -110,6 +110,7 @@ export async function generateDocument(
   const prompt = [
     `Draft a ${input.template.name.toLowerCase()}.`,
     `Template guidance: ${input.template.draftingNotes}`,
+    `Today's date is ${new Date().toISOString().slice(0, 10)}.`,
     jurisdictionLine,
     languageLine,
     contextLines.length > 0 ? `Context:\n${contextLines.join("\n")}` : "",

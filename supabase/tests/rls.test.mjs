@@ -271,6 +271,12 @@ async function main() {
       "update public.lawyer_profiles set verification_status='verified' where user_id=$1", [L3]);
     ok((await asUser(L3, async (q) => (await q("insert into public.lawyer_profiles (user_id, practice_areas) values ($1,'[\"Estate\"]'::jsonb) on conflict (user_id) do update set practice_areas=excluded.practice_areas returning user_id", [L3])).rowCount)) === 1,
       "onboarding-style upsert still works for allowed columns");
+    // Supabase client upserts also rewrite user_id on conflict, which lawyers may
+    // not update. The apps therefore update an existing row and insert otherwise.
+    await denyColumn(L3, "a client-library upsert that rewrites user_id",
+      "insert into public.lawyer_profiles (user_id, practice_areas) values ($1,'[\"Tax\"]'::jsonb) on conflict (user_id) do update set user_id=excluded.user_id, practice_areas=excluded.practice_areas", [L3]);
+    ok((await asUser(L, async (q) => (await q("update public.lawyer_profiles set practice_areas='[\"Tax\"]'::jsonb, licensed_jurisdictions='[]'::jsonb, bar_number='BAR-L' where user_id=$1 returning user_id", [L])).rowCount)) === 1,
+      "the apps' save (update without user_id) works for an existing profile");
     ok((await countAs(A, "select 1 from public.lawyer_profiles where user_id=$1", [L3])) === 0,
       "consumer cannot see L3's UNVERIFIED profile (not in marketplace)");
     ok((await countAs(A, "select 1 from public.lawyer_profiles where user_id=$1", [L])) === 1,

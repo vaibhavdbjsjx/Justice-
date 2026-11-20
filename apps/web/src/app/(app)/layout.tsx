@@ -1,4 +1,6 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { needsAiConsent } from "@/lib/ai/consent";
 import { getViewer } from "@/lib/auth/session";
 import { AppShell } from "@/components/app/app-shell";
 
@@ -7,6 +9,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   if (!viewer.user) redirect("/sign-in");
   if (!viewer.isDemo && !viewer.profile?.onboarding_completed) redirect("/onboarding");
+  // Ask once before anyone reaches the AI tools. "Not now" defers the question
+  // for a day; the AI routes themselves refuse until permission is given.
+  if (
+    !viewer.isDemo &&
+    viewer.profile &&
+    needsAiConsent(viewer.profile) &&
+    !(await cookies()).has("lexa_ai_consent_deferred")
+  ) {
+    redirect("/consent");
+  }
 
   const p = viewer.profile;
   return (

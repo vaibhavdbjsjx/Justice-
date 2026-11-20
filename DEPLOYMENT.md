@@ -15,8 +15,9 @@ The web app lives in `apps/web` (a monorepo). Below are the two supported paths.
    ```
    In Supabase → Authentication → URL Configuration, add your production URL and
    `<your-domain>/auth/callback` to the redirect allow-list.
-2. **OpenAI** — an API key with **billing/credit enabled** (a key with no quota
-   authenticates but every call fails with `insufficient_quota`).
+2. **Gemini** — a free or paid API key. On a free key the app tells users that
+   Google may use what's sent, and the AI features can't serve the EEA, UK, or
+   Switzerland. Set `GEMINI_PAID_TIER=true` once on a paid key.
 3. **Stripe** (optional, for billing) — create products/prices, a webhook endpoint
    at `<your-domain>/api/billing/webhook`, and copy the signing secret.
 
@@ -27,7 +28,9 @@ The web app lives in `apps/web` (a monorepo). Below are the two supported paths.
 | `NEXT_PUBLIC_SUPABASE_URL` | ✅ | public |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | public |
 | `SUPABASE_SERVICE_ROLE_KEY` | ✅ | **server-only secret** |
-| `OPENAI_API_KEY` | ✅ (AI) | server-only secret |
+| `GEMINI_API_KEY` | ✅ (AI) | server-only secret |
+| `GEMINI_MODEL` | optional | pins a model |
+| `APPLE_APP_ID` | App Store purchases | numeric Apple ID of the app |
 | `NEXT_PUBLIC_APP_URL` | ✅ | public (your prod URL) |
 | `STRIPE_SECRET_KEY` | billing | server-only secret |
 | `STRIPE_WEBHOOK_SECRET` | billing | server-only secret |
@@ -63,12 +66,18 @@ A [`netlify.toml`](netlify.toml) is included (`base = "apps/web"` +
 - [ ] `NEXT_PUBLIC_APP_URL` matches the deployed domain (auth redirects depend on it).
 - [ ] Supabase redirect URLs include `<domain>/auth/callback`.
 - [ ] Sign up / sign in / onboarding round-trips work.
-- [ ] AI chat streams a response (requires OpenAI credit).
+- [ ] AI chat streams a response with sources (requires the Gemini key).
 - [ ] Stripe webhook shows `200`s in the Stripe dashboard (if billing enabled).
 
-## Desktop & mobile
+## iPhone, iPad, and Mac
 
-- **Desktop (Tauri):** set `LEXA_APP_URL` to the deployed URL, then
-  `cargo tauri build` in `apps/desktop`.
-- **Mobile (Flutter):** point the app's API base at the deployed URL and build with
-  `flutter build`.
+The app in `apps/mobile` reads its backend from `config/production.json` (public
+values only). See `APPLE_LAUNCH.md` for the App Store steps:
+
+```bash
+cd apps/mobile
+flutter build ipa --release --dart-define-from-file=config/production.json
+```
+
+The same build runs on Apple silicon Macs through the App Store. `apps/desktop`
+(a Tauri shell over the website) is optional and not needed for the App Store.

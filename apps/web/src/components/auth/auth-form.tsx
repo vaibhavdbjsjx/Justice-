@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -134,6 +135,17 @@ export function AuthForm({
           onChange={(e) => setPassword(e.target.value)}
         />
       </Field>
+
+      {!isSignUp && (
+        <div className="-mt-1 text-right">
+          <Link
+            href="/forgot-password"
+            className="text-sm text-accent underline-offset-4 hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </div>
+      )}
 
       <Button type="submit" size="lg" className="w-full" disabled={pending}>
         {pending ? "Please wait…" : isSignUp ? "Create account" : "Sign in"}

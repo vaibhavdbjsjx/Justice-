@@ -42,6 +42,16 @@ act, sign, or file. Lexa is not a law firm and does not practice law.
 
 Built for people, and the lawyers who help them.
 
+SUBSCRIPTIONS
+Lexa is free to start. Lexa Plus ($9.99/month) and Lexa Professional
+($39.99/month, for lawyers) are auto-renewing monthly subscriptions. Payment is
+charged to your Apple Account at confirmation of purchase. A subscription renews
+automatically unless it is cancelled at least 24 hours before the end of the
+current period, and you can manage or cancel it in your Apple Account settings.
+
+Terms of Use: https://lexa-main.netlify.app/terms
+Privacy Policy: https://lexa-main.netlify.app/privacy
+
 ## What's New (version 1.0)
 Welcome to Lexa. Understand your legal situation, make sense of your documents,
 and know your next step — all in plain language.
@@ -56,21 +66,37 @@ and know your next step — all in plain language.
 - Secondary: **Productivity**
 
 ## Age rating
-Recommend **17+**. Legal topics can touch criminal, family, and other mature
-subjects; 17+ avoids content-rating pushback for a law app. (12+ at minimum.)
+Answer Apple's questionnaire honestly instead of aiming for a particular result.
+Two answers matter for Lexa. It has messaging between clients and lawyers, which
+counts as user-generated content. And it discusses legal topics that can involve
+crime or family matters, as information rather than depictions. Apple sets the
+rating from these answers.
 
-## App Review notes (PASTE THIS — important for a legal app)
-Lexa provides general legal INFORMATION and document-understanding tools. It is
-NOT legal advice, is not a law firm, and does not create an attorney–client
-relationship. A clear disclaimer is shown on every AI response and throughout
-the app. Jurisdiction is a first-class field and answers are scoped to it.
+## App Review notes (paste this)
+Lexa provides general legal information and document-understanding tools. It
+is not legal advice, is not a law firm, and does not create an attorney-client
+relationship. That notice appears on every AI response, analysis, and draft.
+Answers are scoped to the jurisdiction the person chooses, and they list the
+sources they drew on.
 
-Demo account for review:
-  email:    <create a real test account and put it here>
-  password: <...>
+Demo account (onboarding already completed):
+  email:    <your demo account email>
+  password: <your demo account password>
 
-Account deletion: in-app at Account → Delete account (Guideline 5.1.1(v)).
-Sign-in: Sign in with Apple + email.
+Where to find things:
+- Ask: the Ask tab. Answers stream in, with sources underneath.
+- Documents: Documents > Read a document > Choose a file (PDF or photo). While
+  it reads, progress shows in the Dynamic Island and on the Lock Screen.
+- Drafts: Documents > Draft a letter.
+- Subscriptions: Account > Plan, or any Plus feature. Restore Purchases is on the
+  paywall and in Account. Purchases are verified on our server with Apple's
+  signed transactions.
+- AI data sharing (5.1.2(i)): asked during setup before anything is sent to
+  Google's Gemini API, and can be changed in Account > AI data sharing.
+- Reporting (1.2): every AI answer, analysis, and draft has Report. Lawyer
+  profiles can be reported and blocked from their ••• menu.
+- Account deletion (5.1.1(v)): Account > Delete account.
+- Sign-in: email and password.
 
 ---
 
@@ -81,14 +107,19 @@ starting set (English-law + your home market), expand later:
 (The app still *supports* all countries in its jurisdiction picker — this just
 limits where it's downloadable at launch.)
 
-## Subscriptions (when you set them up)
-- Create one **Subscription Group** (e.g. "Lexa Plus").
-- Two subscriptions in it:
-  • **Plus** — $9.99/month (consumer)
-  • **Professional** — $39.99/month (lawyer)
-- ⚠️ Apple requires IAP for these. If the native app isn't wired for StoreKit
-  yet, LAUNCH FREE first (no in-app purchase) to avoid Guideline 3.1.1
-  rejection, and add subscriptions in a later update. See APPLE_LAUNCH.md.
+## Subscriptions (StoreKit is built in)
+One subscription group named **Lexa**, with two auto-renewable subscriptions:
+
+| Display name | Product ID | Price | Level |
+|---|---|---|---|
+| Lexa Professional | `com.vaibhavsg.lexa.professional.monthly` | $39.99 / month | 1 |
+| Lexa Plus | `com.vaibhavsg.lexa.plus.monthly` | $9.99 / month | 2 |
+
+Suggested descriptions (max 55 characters):
+- Plus: `Unlimited answers, documents, and drafts`
+- Professional: `Research, drafting, and client tools`
+
+For each subscription's review screenshot, use the paywall screenshot.
 
 ---
 
@@ -98,6 +129,7 @@ limits where it's downloadable at launch.)
 - Show real VALUE, not setup: the assistant answering a question, and the
   Document Intelligence side-by-side view. **Avoid** login, sign-up, onboarding,
   or empty-dashboard screenshots as your main shots.
-- Required sizes: 6.9"/6.7" iPhone, 13" iPad (if iPad), and Mac if submitting Mac.
-- Dynamic Island appears naturally on an iPhone 15 Pro+ simulator — capture there.
+- Required sizes: 6.9" iPhone (1320 × 2868), 6.5" iPhone (1284 × 2778), and
+  13" iPad (2064 × 2752). The iPhone screenshots are taken on simulators with a
+  Dynamic Island.
 - Light editing (captions/backgrounds) is fine; don't fake the UI.

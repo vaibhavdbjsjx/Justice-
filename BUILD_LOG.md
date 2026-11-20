@@ -7,6 +7,43 @@ Legend: ✅ done · ⏳ in progress · ⏭️ deferred (with reason)
 
 ---
 
+## Phase 14 — App Store release (iOS, iPadOS, Mac) — ⏳
+
+**Goal:** a complete, review-ready iOS app on the shared backend, and a web
+release, with every screen walked on every device class.
+
+### Built
+- **Native iOS layer** (Swift, `ios/Runner/Native`, `ios/LexaLiveActivity`):
+  Live Activities with Dynamic Island compact, minimal, expanded, and Lock Screen
+  views for document reading, drafting, answers, and deadlines. Background
+  URLSession so a document keeps reading after the app is left. StoreKit 2,
+  document, photo, and scan pickers, Sign in with Apple, time-sensitive
+  reminders, and motion for the 3D scenes.
+- **Subscriptions:** StoreKit 2 purchases are verified on the server against
+  Apple's root certificate (`lib/billing/apple.ts`). App Store Server
+  Notifications V2 are handled, and one subscription backs one account.
+- **Guideline work:** in-app account deletion, explicit AI data-sharing consent
+  (5.1.2(i)) enforced on the server too, reporting and blocking (1.2), and a
+  privacy manifest.
+- **End-to-end walkthrough** (`apps/mobile/test_e2e`): the real app on simulated
+  iPhones (6.9", 6.1", SE, large text, dark), iPads (portrait, landscape, split
+  view), and a Mac window, against the local backend, with no simulator. It
+  fails on any layout overflow or framework error and saves a picture of every
+  screen.
+
+### Fixed by the walkthrough and review
+- Composer in a matter's conversation hidden behind the tab bar; composers
+  floating about 90 pt above the keyboard (Ask and Messages).
+- Bottom sheets reaching into the home indicator; menus stretching to full height.
+- "Show in document" doing nothing for text further down the page.
+- Reminders rescheduled after being switched off.
+- A session whose account no longer exists showed an endless spinner.
+- Drafting and document reading could hang on unexpected errors.
+- Requests failing when reusing a connection the server had just closed.
+- Paywall and pricing claimed "priority answers" and "priority support", which
+  don't exist. Removed.
+- The intake link reached the AI without the person's permission.
+
 ## Phase 13 — Polish Loop — ✅ (HIGH effort)
 
 **Goal (Part 9/10):** Full click-through web/desktop/mobile, dark mode,

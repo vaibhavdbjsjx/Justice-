@@ -17,6 +17,9 @@ import { CitationList } from "@/components/compliance/source-citation";
 import { splitSources, toCitation } from "@/lib/legal/citations";
 import { saveDraftingPrefill } from "@/lib/drafting/prefill";
 import { ChatMarkdown } from "./chat-markdown";
+import { AnswerSources } from "./answer-sources";
+import { ReportAnswer } from "./report-answer";
+import { splitStreamMeta, type StreamMeta } from "@/lib/ai/stream-meta";
 import {
   RESEARCH_SUGGESTIONS,
   SUGGESTED_QUESTIONS,
@@ -30,6 +33,8 @@ export type UiMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  /** Sources behind a grounded answer. */
+  meta?: StreamMeta | null;
 };
 
 const MAX_MESSAGE_CHARS = 8_000;
@@ -66,6 +71,7 @@ export function ChatScreen({
   const [error, setError] = useState<string | null>(null);
   // Tier-gate errors (Phase 10) carry upgrade:true → link to /billing.
   const [upgradeHint, setUpgradeHint] = useState(false);
+  const [consentHint, setConsentHint] = useState(false);
 
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -101,6 +107,7 @@ export function ChatScreen({
 
       setError(null);
       setUpgradeHint(false);
+      setConsentHint(false);
       setInput("");
       if (textareaRef.current) textareaRef.current.style.height = "auto";
       pinnedToBottom.current = true;
@@ -130,9 +137,11 @@ export function ChatScreen({
             const data = (await res.json()) as {
               error?: string;
               upgrade?: boolean;
+              consentRequired?: boolean;
             };
             if (data.error) message = data.error;
             if (data.upgrade) setUpgradeHint(true);
+            if (data.consentRequired) setConsentHint(true);
           } catch {
             // fall through to the calm default
           }
@@ -147,14 +156,17 @@ export function ChatScreen({
 
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
+        let raw = "";
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
           const chunk = decoder.decode(value, { stream: true });
           if (!chunk) continue;
+          raw += chunk;
+          const { text: answer, meta } = splitStreamMeta(raw);
           setMessages((prev) =>
             prev.map((m) =>
-              m.id === assistantId ? { ...m, content: m.content + chunk } : m,
+              m.id === assistantId ? { ...m, content: answer, meta } : m,
             ),
           );
         }
@@ -241,6 +253,7 @@ export function ChatScreen({
                     <span className="sr-only">Lexa replied: </span>
                     <AssistantMessage
                       content={m.content}
+                      meta={m.meta ?? null}
                       audience={audience}
                       highStakes={highStakes && m.id === lastAssistantId}
                       streamingThis={
@@ -272,6 +285,17 @@ export function ChatScreen({
                     </Link>
                   </>
                 )}
+                {consentHint && (
+                  <>
+                    {" "}
+                    <Link
+                      href="/consent?next=/chat"
+                      className="font-medium text-accent underline underline-offset-4"
+                    >
+                      Review and agree →
+                    </Link>
+                  </>
+                )}
               </Alert>
             )}
           </div>
@@ -291,6 +315,17 @@ export function ChatScreen({
                     className="font-medium text-accent underline underline-offset-4"
                   >
                     View plans →
+                  </Link>
+                </>
+              )}
+              {consentHint && (
+                <>
+                  {" "}
+                  <Link
+                    href="/consent?next=/chat"
+                    className="font-medium text-accent underline underline-offset-4"
+                  >
+                    Review and agree →
                   </Link>
                 </>
               )}
@@ -492,12 +527,14 @@ function EmptyState({
  */
 function AssistantMessage({
   content,
+  meta,
   audience,
   highStakes,
   streamingThis,
   onUseInDrafting,
 }: {
   content: string;
+  meta: StreamMeta | null;
   audience: "consumer" | "lawyer";
   highStakes: boolean;
   streamingThis: boolean;
@@ -544,10 +581,11 @@ function AssistantMessage({
             className="pt-2"
           />
         )}
+        {meta && !streamingThis && <AnswerSources meta={meta} />}
       </AiLegalOutput>
 
-      {audience === "lawyer" && !streamingThis && body && (
-        <div className="mt-2.5 flex items-center gap-1">
+      {!streamingThis && body && (
+        <div className="mt-2.5 flex flex-wrap items-center gap-1">
           <button
             type="button"
             onClick={copy}
@@ -560,14 +598,17 @@ function AssistantMessage({
             )}
             {copied ? "Copied" : "Copy"}
           </button>
-          <button
-            type="button"
-            onClick={() => onUseInDrafting(body)}
-            className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-muted transition-colors duration-150 hover:bg-surface-sunken hover:text-foreground"
-          >
-            <PenLine className="h-3.5 w-3.5" aria-hidden="true" />
-            Use in drafting
-          </button>
+          {audience === "lawyer" && (
+            <button
+              type="button"
+              onClick={() => onUseInDrafting(body)}
+              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-muted transition-colors duration-150 hover:bg-surface-sunken hover:text-foreground"
+            >
+              <PenLine className="h-3.5 w-3.5" aria-hidden="true" />
+              Use in drafting
+            </button>
+          )}
+          <ReportAnswer excerpt={content} />
         </div>
       )}
     </>

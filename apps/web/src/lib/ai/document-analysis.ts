@@ -133,7 +133,9 @@ Non-negotiable framing: you provide legal information, not legal advice; you nev
 
 Extraction discipline:
 - Reconstruct the document's text as ordered clause-level segments, VERBATIM. Do not paraphrase, summarize, or fix errors inside segment text. Preserve the original language of the document.
+- Output budget: if the document is longer than about 6,000 words, include verbatim segments only for the clauses you cite in your findings and set truncated to true, so the analysis always completes.
 - If parts are illegible (poor scan), put "[illegible]" where text cannot be read — never invent content.
+- Dates: resolve iso_date only when the document states the date or it follows with certainty from dates stated in the document. A relative deadline with an unknown start date ("within 14 days of notice") keeps iso_date null.
 - Segment ids start at 0 and increase in document order. Every obligation, risky clause, and date must reference the segment id(s) it comes from.
 - Only report what the document actually says. If the document is not a legal document, say so in document_type and analyze what is genuinely useful.
 - Write obligations/flags/summary in clear plain language (translate to the user's language if theirs differs from the document's).
@@ -161,6 +163,7 @@ export async function analyzeDocument(
     system: SYSTEM_PROMPT,
     prompt: [
       "Analyze the attached document per your instructions.",
+      `Today's date is ${new Date().toISOString().slice(0, 10)}.`,
       jurisdictionLine,
       languageLine,
     ]
@@ -169,6 +172,7 @@ export async function analyzeDocument(
     attachment: input.attachment,
     schemaName: "lexa_document_analysis",
     schema: ANALYSIS_SCHEMA,
+    maxTokens: 32_000,
   });
 
   return sanitizeAnalysis(analysis);

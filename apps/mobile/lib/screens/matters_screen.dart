@@ -1,33 +1,16 @@
+import 'package:flutter/cupertino.dart' show CupertinoActivityIndicator;
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import '../api/client.dart';
 import '../models/models.dart';
+import '../state/app_state.dart';
 import '../theme/theme.dart';
-import 'chat_screen.dart';
+import '../widgets/common.dart';
+import '../widgets/pickers.dart';
+import '../widgets/ui.dart';
+import 'matter_detail_screen.dart';
+import 'paywall_screen.dart';
 
-const _categories = <(String, String)>[
-  ('tenant-housing', 'Tenant & Housing'),
-  ('employment', 'Employment & Workplace'),
-  ('contracts', 'Contracts & Agreements'),
-  ('consumer', 'Consumer Rights'),
-  ('small-claims', 'Small Claims & Money Owed'),
-  ('family', 'Family'),
-  ('immigration', 'Immigration'),
-  ('criminal', 'Criminal'),
-  ('personal-injury', 'Personal Injury'),
-  ('estate', 'Estate & Wills'),
-  ('business', 'Small Business'),
-  ('bankruptcy', 'Debt & Bankruptcy'),
-  ('other', 'Something else'),
-];
-
-String categoryLabel(String value) =>
-    _categories.firstWhere((c) => c.$1 == value,
-        orElse: () => ('other', 'Uncategorized')).$2;
-
-/// Matters (Phase 12): list + create via Supabase directly (RLS enforces
-/// ownership; the same free-tier cap the web enforces applies via policy on
-/// the server side of AI calls — creation itself mirrors web behavior).
+/// A matter holds one situation's conversation, documents, and deadlines.
 class MattersScreen extends StatefulWidget {
   const MattersScreen({super.key});
 
@@ -36,122 +19,194 @@ class MattersScreen extends StatefulWidget {
 }
 
 class _MattersScreenState extends State<MattersScreen> {
-  late Future<List<Matter>> _future = _load();
+  List<Matter>? _matters;
+  Object? _error;
+  AppState? _state;
 
-  Future<List<Matter>> _load() async {
-    final rows = await Supabase.instance.client
-        .from('matters')
-        .select()
-        .not('category', 'in', '(general,research)')
-        .order('created_at', ascending: false);
-    return rows.map(Matter.fromJson).toList();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final state = AppScope.read(context);
+    if (!identical(state, _state)) {
+      _state?.dataVersion.removeListener(_load);
+      _state = state;
+      state.dataVersion.addListener(_load);
+      _load();
+    }
   }
 
-  Future<void> _refresh() async {
-    setState(() => _future = _load());
-    await _future;
+  @override
+  void dispose() {
+    _state?.dataVersion.removeListener(_load);
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    try {
+      final matters = await _state!.repo.matters();
+      if (mounted) {
+        setState(() {
+          _matters = matters;
+          _error = null;
+        });
+      }
+    } catch (error) {
+      if (mounted) setState(() => _error = error);
+    }
+  }
+
+  Future<void> _create() async {
+    final created = await showLexaSheet<Matter>(context, (_) => const MatterFormSheet());
+    if (created != null && mounted) {
+      await _load();
+      if (mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => MatterDetailScreen(matter: created)),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      appBar: AppBar(title: const Text('Matters')),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          final created = await Navigator.of(context).push<bool>(
-              MaterialPageRoute(builder: (_) => const NewMatterScreen()));
-          if (created == true) _refresh();
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('New matter'),
-      ),
-      body: RefreshIndicator(
-        onRefresh: _refresh,
-        child: FutureBuilder<List<Matter>>(
-          future: _future,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState != ConnectionState.done) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              return _Message(
-                  'Your matters couldn’t be loaded just now. Pull to retry.');
-            }
-            final matters = snapshot.data ?? const [];
-            if (matters.isEmpty) {
-              return _Message(
-                  'No matters yet. Start one to keep a situation’s conversation, documents, and deadlines together.');
-            }
-            return ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: matters.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 10),
-              itemBuilder: (context, i) {
-                final m = matters[i];
-                return Card(
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 6),
-                    leading: CircleAvatar(
-                      backgroundColor: context.accentSoft,
-                      child: Icon(Icons.folder_outlined,
-                          color: theme.colorScheme.secondary, size: 20),
-                    ),
-                    title: Text(m.title,
-                        style: theme.textTheme.titleMedium),
-                    subtitle: Text(
-                      '${categoryLabel(m.category)} · ${m.jurisdictionLabel}',
-                      style: theme.textTheme.bodySmall,
-                    ),
-                    trailing: const Icon(Icons.chevron_right, size: 20),
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                          builder: (_) => MatterDetailScreen(matter: m)),
-                    ),
+    final matters = _matters;
+    final active = matters?.where((m) => m.status == 'active').toList() ?? const <Matter>[];
+    final closed = matters?.where((m) => m.status != 'active').toList() ?? const <Matter>[];
+
+    return LexaPage(
+      title: 'Matters',
+      onRefresh: _load,
+      actions: [
+        IconActionButton(icon: Icons.add_rounded, size: 26, tooltip: 'New matter', onPressed: _create),
+      ],
+      slivers: [
+        SliverList.list(
+          children: [
+            const SizedBox(height: 8),
+            if (_error != null && matters == null)
+              Note("Your matters couldn't be loaded just now.",
+                  tone: NoteTone.error, action: 'Try again', onAction: _load)
+            else if (matters == null)
+              const SkeletonCards(count: 4)
+            else if (matters.isEmpty)
+              EmptyView(
+                icon: Icons.folder_open_rounded,
+                title: 'Start your first matter',
+                body: "Keep a situation's conversation, documents, and deadlines together in one place.",
+                action: 'New matter',
+                onAction: _create,
+              )
+            else ...[
+              for (var i = 0; i < active.length; i++)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Reveal(index: i, child: _MatterCard(matter: active[i], onChanged: _load)),
+                ),
+              if (closed.isNotEmpty) ...[
+                const SectionLabel('Closed'),
+                for (final matter in closed)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: _MatterCard(matter: matter, onChanged: _load),
                   ),
-                );
-              },
-            );
-          },
+              ],
+            ],
+          ],
         ),
-      ),
-    );
-  }
-}
-
-class _Message extends StatelessWidget {
-  const _Message(this.text);
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(32),
-      children: [
-        const SizedBox(height: 60),
-        Text(text,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium),
       ],
     );
   }
 }
 
-class NewMatterScreen extends StatefulWidget {
-  const NewMatterScreen({super.key});
+class _MatterCard extends StatelessWidget {
+  const _MatterCard({required this.matter, required this.onChanged});
+
+  final Matter matter;
+  final VoidCallback onChanged;
 
   @override
-  State<NewMatterScreen> createState() => _NewMatterScreenState();
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return LexaCard(
+      padding: const EdgeInsets.all(15),
+      label: matter.title,
+      onTap: () async {
+        await Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => MatterDetailScreen(matter: matter)),
+        );
+        onChanged();
+      },
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(color: context.accentSoft, borderRadius: BorderRadius.circular(14)),
+            child: Icon(categoryIcon(matter.category), size: 22, color: context.accentColor),
+          ),
+          const SizedBox(width: 13),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(matter.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: theme.textTheme.titleMedium),
+                const SizedBox(height: 3),
+                Text(
+                  '${categoryLabel(matter.category)} · ${matter.jurisdictionLabel}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          if (matter.status != 'active')
+            Pill(matter.status == 'resolved' ? 'Resolved' : 'Archived')
+          else
+            Icon(Icons.chevron_right_rounded, size: 21, color: context.mutedColor),
+        ],
+      ),
+    );
+  }
 }
 
-class _NewMatterScreenState extends State<NewMatterScreen> {
-  final _title = TextEditingController();
-  String _category = 'tenant-housing';
+/// Create or edit a matter. Returns the saved matter.
+class MatterFormSheet extends StatefulWidget {
+  const MatterFormSheet({super.key, this.matter});
+
+  final Matter? matter;
+
+  @override
+  State<MatterFormSheet> createState() => _MatterFormSheetState();
+}
+
+class _MatterFormSheetState extends State<MatterFormSheet> {
+  late final _title = TextEditingController(text: widget.matter?.title);
+  late String _category = widget.matter?.category ?? 'tenant-housing';
+  String? _country;
+  String? _stateName;
+  bool _initialized = false;
   bool _busy = false;
   String? _error;
+  bool _upgrade = false;
 
-  Future<void> _create() async {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_initialized) return;
+    _initialized = true;
+    final profile = AppScope.read(context).profile;
+    _country = widget.matter?.jurisdictionCountry ?? profile?.country;
+    _stateName = widget.matter == null ? profile?.state : widget.matter!.jurisdictionState;
+  }
+
+  @override
+  void dispose() {
+    _title.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
     final title = _title.text.trim();
     if (title.isEmpty) {
       setState(() => _error = 'Give the matter a short title.');
@@ -160,14 +215,168 @@ class _NewMatterScreenState extends State<NewMatterScreen> {
     setState(() {
       _busy = true;
       _error = null;
+      _upgrade = false;
     });
+    final state = AppScope.read(context);
     try {
-      final client = Supabase.instance.client;
-      await client.from('matters').insert({
-        'user_id': client.auth.currentUser!.id,
-        'title': title,
-        'category': _category,
-      });
+      final Matter saved;
+      if (widget.matter == null) {
+        saved = await state.api.createMatter(
+          title: title,
+          category: _category,
+          country: _country,
+          state: _stateName,
+        );
+      } else {
+        await state.repo.updateMatter(widget.matter!.id, {
+          'title': title,
+          'category': _category,
+          'jurisdiction_country': _country,
+          'jurisdiction_state': _stateName,
+        });
+        saved = (await state.repo.matter(widget.matter!.id))!;
+      }
+      state.notifyDataChanged();
+      if (mounted) Navigator.of(context).pop(saved);
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _error = e.message;
+          _upgrade = e.upgrade;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _error = "That couldn't be saved. Please try again.";
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return SingleChildScrollView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: const EdgeInsets.fromLTRB(22, 18, 22, 26),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(widget.matter == null ? 'New matter' : 'Edit matter', style: theme.textTheme.headlineMedium),
+          const SizedBox(height: 16),
+          LabeledField(
+            label: 'Title',
+            child: TextField(
+              key: const Key('matter-title'),
+              controller: _title,
+              maxLength: 200,
+              autofocus: widget.matter == null,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: const InputDecoration(hintText: 'Security deposit dispute', counterText: ''),
+            ),
+          ),
+          LabeledField(
+            label: 'Category',
+            child: PickerField(
+              value: categoryLabel(_category),
+              placeholder: 'Choose',
+              icon: categoryIcon(_category),
+              onTap: () async {
+                final picked = await showSearchPicker<(String, String, IconData)>(
+                  context,
+                  title: 'Category',
+                  items: matterCategories,
+                  label: (c) => c.$2,
+                );
+                if (picked != null) setState(() => _category = picked.$1);
+              },
+            ),
+          ),
+          JurisdictionFields(
+            country: _country,
+            state: _stateName,
+            onChanged: (country, state) => setState(() {
+              _country = country;
+              _stateName = state;
+            }),
+          ),
+          if (_error != null) ...[
+            Note(
+              _error!,
+              tone: _upgrade ? NoteTone.info : NoteTone.error,
+              action: _upgrade ? 'See plans' : null,
+              onAction: _upgrade ? () => showPaywall(context) : null,
+            ),
+            const SizedBox(height: 12),
+          ],
+          LexaButton(
+            widget.matter == null ? 'Create matter' : 'Save changes',
+            key: const Key('matter-save'),
+            onPressed: _save,
+            busy: _busy,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Add a deadline, with a date picker. Returns true when one was saved.
+class DeadlineFormSheet extends StatefulWidget {
+  const DeadlineFormSheet({super.key, required this.matterId, this.initialTitle, this.initialDate});
+
+  final String matterId;
+  final String? initialTitle;
+  final DateTime? initialDate;
+
+  @override
+  State<DeadlineFormSheet> createState() => _DeadlineFormSheetState();
+}
+
+class _DeadlineFormSheetState extends State<DeadlineFormSheet> {
+  late final _title = TextEditingController(text: widget.initialTitle);
+  late DateTime? _date = widget.initialDate;
+  bool _busy = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _title.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    FocusScope.of(context).unfocus();
+    final picked = await pickDate(
+      context,
+      title: 'Due date',
+      initial: _date ?? now,
+      first: DateTime(now.year - 2),
+      last: DateTime(now.year + 15, 12, 31),
+    );
+    if (picked != null) setState(() => _date = picked);
+  }
+
+  Future<void> _save() async {
+    final title = _title.text.trim();
+    if (title.isEmpty) {
+      setState(() => _error = 'Say what is due.');
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    final state = AppScope.read(context);
+    try {
+      await state.repo.addDeadline(matterId: widget.matterId, title: title, due: _date);
+      await state.reminders.reschedule();
+      state.notifyDataChanged();
       if (mounted) Navigator.of(context).pop(true);
     } catch (_) {
       if (mounted) {
@@ -181,140 +390,49 @@ class _NewMatterScreenState extends State<NewMatterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('New matter')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
+    final theme = Theme.of(context);
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(22, 18, 22, 26),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          if (_error != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Text(_error!,
-                  style: TextStyle(
-                      color: Theme.of(context).colorScheme.error)),
+          Text('Add a deadline', style: theme.textTheme.headlineMedium),
+          const SizedBox(height: 16),
+          LabeledField(
+            label: "What's due",
+            child: TextField(
+              key: const Key('deadline-title'),
+              controller: _title,
+              autofocus: widget.initialTitle == null,
+              maxLength: 200,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: const InputDecoration(hintText: 'Respond to the notice', counterText: ''),
             ),
-          TextField(
-            controller: _title,
-            decoration: const InputDecoration(
-                hintText: 'e.g. Security deposit dispute'),
           ),
-          const SizedBox(height: 14),
-          DropdownButtonFormField<String>(
-            initialValue: _category,
-            items: _categories
-                .map((c) =>
-                    DropdownMenuItem(value: c.$1, child: Text(c.$2)))
-                .toList(),
-            onChanged: (v) => setState(() => _category = v ?? 'other'),
+          LabeledField(
+            label: 'Date',
+            child: PickerField(
+              value: _date == null ? null : formatDate(_date!),
+              placeholder: 'Choose a date',
+              icon: Icons.event_outlined,
+              onTap: _pickDate,
+            ),
           ),
-          const SizedBox(height: 20),
-          FilledButton(
-            onPressed: _busy ? null : _create,
-            child: Text(_busy ? 'Creating…' : 'Create matter'),
-          ),
+          if (_error != null) ...[
+            Note(_error!, tone: NoteTone.error),
+            const SizedBox(height: 12),
+          ],
+          LexaButton('Add deadline', key: const Key('deadline-save'), onPressed: _save, busy: _busy),
         ],
       ),
     );
   }
 }
 
-/// Matter workspace: scoped chat + deadlines (read/toggle) in tabs.
-class MatterDetailScreen extends StatefulWidget {
-  const MatterDetailScreen({super.key, required this.matter});
-  final Matter matter;
+class CenteredLoader extends StatelessWidget {
+  const CenteredLoader({super.key});
 
   @override
-  State<MatterDetailScreen> createState() => _MatterDetailScreenState();
-}
-
-class _MatterDetailScreenState extends State<MatterDetailScreen> {
-  late Future<List<Deadline>> _deadlines = _load();
-
-  Future<List<Deadline>> _load() async {
-    final rows = await Supabase.instance.client
-        .from('deadlines')
-        .select()
-        .eq('matter_id', widget.matter.id)
-        .order('due_date', ascending: true);
-    return rows.map(Deadline.fromJson).toList();
-  }
-
-  Future<void> _toggle(Deadline d) async {
-    await Supabase.instance.client.from('deadlines').update({
-      'status': d.status == 'completed' ? 'upcoming' : 'completed'
-    }).eq('id', d.id);
-    setState(() => _deadlines = _load());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final df = DateFormat.yMMMd();
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(widget.matter.title),
-          bottom: const TabBar(
-              tabs: [Tab(text: 'Conversation'), Tab(text: 'Deadlines')]),
-        ),
-        body: TabBarView(
-          children: [
-            ChatScreen(
-                matterId: widget.matter.id,
-                matterTitle: widget.matter.title),
-            FutureBuilder<List<Deadline>>(
-              future: _deadlines,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState != ConnectionState.done) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return const _Message(
-                      'Deadlines couldn’t be loaded just now. Please try again.');
-                }
-                final items = snapshot.data ?? const <Deadline>[];
-                if (items.isEmpty) {
-                  return const _Message(
-                      'No deadlines yet. Add dates you can’t afford to miss from the web app.');
-                }
-                return ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: items.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 8),
-                  itemBuilder: (context, i) {
-                    final d = items[i];
-                    return Card(
-                      child: CheckboxListTile(
-                        value: d.status == 'completed',
-                        onChanged: (_) => _toggle(d),
-                        title: Text(d.title,
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              decoration: d.status == 'completed'
-                                  ? TextDecoration.lineThrough
-                                  : null,
-                            )),
-                        subtitle: d.dueDate == null
-                            ? null
-                            : Text(
-                                df.format(d.dueDate!),
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: d.overdue
-                                      ? theme.colorScheme.error
-                                      : null,
-                                  fontWeight:
-                                      d.overdue ? FontWeight.w600 : null,
-                                ),
-                              ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => const Center(child: CupertinoActivityIndicator(radius: 13));
 }

@@ -1,20 +1,172 @@
-import 'dart:convert';
-import 'package:file_picker/file_picker.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../api/client.dart';
-import '../config.dart';
-import '../legal/disclaimers.dart';
 import '../models/models.dart';
+import '../native/native_bridge.dart';
+import '../state/app_state.dart';
 import '../theme/theme.dart';
-import '../widgets/ai_legal_output.dart';
-import '../widgets/markdown_lite.dart';
+import '../widgets/common.dart';
+import '../widgets/ui.dart';
+import 'analysis_screen.dart';
+import 'consent.dart';
+import 'generate_screen.dart';
+import 'paywall_screen.dart';
 
-/// Documents (Phase 12): library + Document Intelligence upload/analysis +
-/// generation. Reads go straight to Supabase (RLS); AI operations go through
-/// the web API with the bearer token.
+/// Picks a document and starts reading it. Plan and permission are checked first,
+/// so nobody chooses a file only to be turned away afterward.
+Future<void> startDocumentAnalysis(BuildContext context, {String? matterId}) async {
+  final state = AppScope.read(context);
+  if (!await ensureAiConsent(context)) return;
+  if (!context.mounted) return;
+
+  final billing = state.billing;
+  if (billing != null && billing.isFree && billing.paymentsEnabled) {
+    await showPaywall(
+      context,
+      reason: 'Document Intelligence is part of Plus. Upload any legal document and see what it really says.',
+    );
+    if (!context.mounted || (state.billing?.isFree ?? true)) return;
+  }
+
+  final canScan = await NativeBridge.instance.canScan();
+  if (!context.mounted) return;
+
+  final file = await showLexaSheet<PickedFile>(
+    context,
+    (sheet) => _SourceSheet(canScan: canScan),
+  );
+  if (file == null || !context.mounted) return;
+
+  if (file.size > 20 * 1024 * 1024) {
+    showToast(context, 'That file is over 20 MB. Try a smaller file or a clear photo of the key pages.');
+    return;
+  }
+
+  await Navigator.of(context).push(
+    MaterialPageRoute(
+      fullscreenDialog: true,
+      builder: (_) => AnalysisProgressScreen(file: file, matterId: matterId),
+    ),
+  );
+  state.notifyDataChanged();
+}
+
+class _SourceSheet extends StatelessWidget {
+  const _SourceSheet({required this.canScan});
+
+  final bool canScan;
+
+  Future<void> _pick(BuildContext context, Future<PickedFile?> Function() picker) async {
+    final navigator = Navigator.of(context);
+    final file = await picker();
+    navigator.pop(file);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final bridge = NativeBridge.instance;
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(6, 0, 6, 12),
+            child: Text('Read a document', style: theme.textTheme.headlineMedium),
+          ),
+          SettingsGroup(
+            children: [
+              if (canScan)
+                SettingsRow(
+                  title: 'Scan with camera',
+                  subtitle: 'For a paper notice, letter, or contract',
+                  icon: Icons.document_scanner_outlined,
+                  onTap: () => _pick(context, bridge.scanDocument),
+                ),
+              SettingsRow(
+                title: 'Choose a file',
+                subtitle: 'PDF or image, up to 20 MB',
+                icon: Icons.folder_open_rounded,
+                onTap: () => _pick(context, bridge.pickDocument),
+              ),
+              SettingsRow(
+                title: 'Choose a photo',
+                subtitle: 'A clear photo of the page',
+                icon: Icons.photo_outlined,
+                onTap: () => _pick(context, bridge.pickPhoto),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A document in a list: what it is and what was found.
+class DocumentCard extends StatelessWidget {
+  const DocumentCard({super.key, required this.document, required this.onChanged});
+
+  final DocumentItem document;
+  final VoidCallback onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final generated = document.type == 'generated';
+    final flagged = document.annotations?['risky_or_unusual_clauses'];
+    final hasFlags = flagged is List && flagged.isNotEmpty;
+
+    return LexaCard(
+      padding: const EdgeInsets.all(15),
+      label: document.title,
+      onTap: () async {
+        await openDocument(context, document);
+        onChanged();
+      },
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(color: context.accentSoft, borderRadius: BorderRadius.circular(14)),
+            child: Icon(
+              generated ? Icons.edit_note_rounded : Icons.description_outlined,
+              size: 22,
+              color: context.accentColor,
+            ),
+          ),
+          const SizedBox(width: 13),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(document.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: theme.textTheme.titleMedium),
+                const SizedBox(height: 3),
+                Text(
+                  formatDate(document.createdAt.toLocal()),
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Pill(
+            document.summaryLine,
+            tone: generated
+                ? PillTone.neutral
+                : hasFlags
+                    ? PillTone.alert
+                    : PillTone.success,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The document library.
 class DocumentsScreen extends StatefulWidget {
   const DocumentsScreen({super.key});
 
@@ -23,603 +175,169 @@ class DocumentsScreen extends StatefulWidget {
 }
 
 class _DocumentsScreenState extends State<DocumentsScreen> {
-  final _api = LexmindApi();
-  late Future<List<DocumentItem>> _future = _load();
-  bool _uploading = false;
-  String? _error;
-  bool _upgradeHint = false;
+  List<DocumentItem>? _documents;
+  Object? _error;
+  AppState? _state;
+  String _query = '';
 
-  Future<List<DocumentItem>> _load() async {
-    final rows = await Supabase.instance.client
-        .from('documents')
-        .select()
-        .order('created_at', ascending: false);
-    return rows.map(DocumentItem.fromJson).toList();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final state = AppScope.read(context);
+    if (!identical(state, _state)) {
+      _state?.dataVersion.removeListener(_load);
+      _state = state;
+      state.dataVersion.addListener(_load);
+      _load();
+    }
   }
 
-  Future<void> _refresh() async {
-    setState(() => _future = _load());
-    await _future;
+  @override
+  void dispose() {
+    _state?.dataVersion.removeListener(_load);
+    super.dispose();
   }
 
-  Future<void> _pickAndAnalyze() async {
-    setState(() {
-      _error = null;
-      _upgradeHint = false;
-    });
-    final picked = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf', 'png', 'jpg', 'jpeg', 'webp'],
-      withData: true,
-    );
-    final file = picked?.files.firstOrNull;
-    if (file?.bytes == null) return;
-
-    setState(() => _uploading = true);
+  Future<void> _load() async {
     try {
-      final result = await _api.analyzeDocument(
-          bytes: file!.bytes!, filename: file.name);
-      await _refresh();
-      final analysisJson = result['analysis'];
-      if (!mounted) return;
-      if (analysisJson is Map<String, dynamic>) {
-        Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => AnalysisScreen(
-            title: (result['title'] as String?) ?? file.name,
-            analysis: DocumentAnalysis.fromJson(analysisJson),
-          ),
-        ));
+      final documents = await _state!.repo.documents();
+      if (mounted) {
+        setState(() {
+          _documents = documents;
+          _error = null;
+        });
       }
-    } on ApiException catch (e) {
-      setState(() {
-        _error = e.message;
-        _upgradeHint = e.upgrade;
-      });
-    } catch (_) {
-      setState(() => _error =
-          "Lexa couldn't finish reading that document. Nothing was lost — please try again.");
-    } finally {
-      if (mounted) setState(() => _uploading = false);
+    } catch (error) {
+      if (mounted) setState(() => _error = error);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final df = DateFormat.yMMMd();
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Documents'),
-        actions: [
-          IconButton(
-            tooltip: 'Generate a document',
-            icon: const Icon(Icons.edit_note),
-            onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => const GenerateScreen())),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _uploading ? null : _pickAndAnalyze,
-        icon: _uploading
-            ? const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2))
-            : const Icon(Icons.upload_file),
-        label: Text(_uploading ? 'Analyzing…' : 'Analyze'),
-      ),
-      body: RefreshIndicator(
-        onRefresh: _refresh,
-        child: Column(
+    final state = AppScope.of(context);
+    final documents = _documents;
+    final query = _query.trim().toLowerCase();
+    final visible = documents == null || query.isEmpty
+        ? documents
+        : documents.where((d) => d.title.toLowerCase().contains(query)).toList();
+
+    return LexaPage(
+      title: 'Documents',
+      onRefresh: _load,
+      slivers: [
+        SliverList.list(
           children: [
-            if (_error != null)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: (_upgradeHint
-                            ? theme.colorScheme.secondary
-                            : theme.colorScheme.error)
-                        .withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                      _upgradeHint
-                          ? '$_error Manage your plan from the web app.'
-                          : _error!,
-                      style: theme.textTheme.bodyMedium),
+            const SizedBox(height: 8),
+            Reveal(
+              child: _FeatureCard(
+                icon: Icons.document_scanner_outlined,
+                title: 'Read a document',
+                body: 'See obligations, deadlines, and risky clauses in plain language.',
+                onTap: () => startDocumentAnalysis(context),
+                emphasized: true,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Reveal(
+              index: 1,
+              child: _FeatureCard(
+                icon: Icons.edit_note_rounded,
+                title: state.profile?.isLawyer == true ? 'Draft a document' : 'Draft a letter',
+                body: 'A first draft from your facts, with every assumption flagged.',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const GenerateScreen()),
                 ),
               ),
-            Expanded(
-              child: FutureBuilder<List<DocumentItem>>(
-                future: _future,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState != ConnectionState.done) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (snapshot.hasError) {
-                    return ListView(
-                      padding: const EdgeInsets.all(32),
-                      children: [
-                        const SizedBox(height: 60),
-                        Text(
-                          'Your documents couldn’t be loaded just now. Pull down to retry.',
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                      ],
-                    );
-                  }
-                  final docs = snapshot.data ?? const <DocumentItem>[];
-                  if (docs.isEmpty) {
-                    return ListView(
-                      padding: const EdgeInsets.all(32),
-                      children: [
-                        const SizedBox(height: 60),
-                        Text(
-                          'Upload a contract, notice, or court paper — Lexa shows the obligations, deadlines, and risky clauses.',
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                      ],
-                    );
-                  }
-                  return ListView.separated(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: docs.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 8),
-                    itemBuilder: (context, i) {
-                      final d = docs[i];
-                      return Card(
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: context.accentSoft,
-                            child: Icon(
-                              d.type == 'generated'
-                                  ? Icons.edit_note
-                                  : Icons.description_outlined,
-                              size: 20,
-                              color: theme.colorScheme.secondary,
-                            ),
-                          ),
-                          title: Text(d.title,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.titleMedium),
-                          subtitle: Text(
-                            d.type == 'generated'
-                                ? 'Draft — review before use · ${df.format(d.createdAt)}'
-                                : df.format(d.createdAt),
-                            style: theme.textTheme.bodySmall,
-                          ),
-                          onTap: () => _open(d),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
             ),
+            if (documents != null && documents.length > 4) ...[
+              const SizedBox(height: 16),
+              TextField(
+                onChanged: (v) => setState(() => _query = v),
+                decoration: const InputDecoration(
+                  hintText: 'Search your documents',
+                  prefixIcon: Icon(Icons.search_rounded, size: 20),
+                ),
+              ),
+            ],
+            const SizedBox(height: 4),
+            if (_error != null && documents == null) ...[
+              const SizedBox(height: 16),
+              Note("Your documents couldn't be loaded just now.",
+                  tone: NoteTone.error, action: 'Try again', onAction: _load),
+            ] else if (documents == null) ...[
+              const SizedBox(height: 22),
+              const SkeletonCards(count: 3),
+            ] else if (documents.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 26),
+                child: Text(
+                  'Your documents and drafts will appear here.',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodySmall,
+                ),
+              )
+            else ...[
+              const SectionLabel('Your library'),
+              if (visible!.isEmpty)
+                Text('No documents match that search.', style: theme.textTheme.bodySmall),
+              for (var i = 0; i < visible.length; i++)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Reveal(index: i, child: DocumentCard(document: visible[i], onChanged: _load)),
+                ),
+            ],
           ],
         ),
-      ),
-    );
-  }
-
-  void _open(DocumentItem d) {
-    if (d.isAnalysis) {
-      Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => AnalysisScreen(
-          title: d.title,
-          analysis: DocumentAnalysis.fromJson(d.annotations!),
-        ),
-      ));
-    } else if (d.isGeneratedDraft) {
-      Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => DraftScreen(
-            draft: GeneratedDoc.fromJson(d.annotations!)),
-      ));
-    }
-  }
-}
-
-/// Document Intelligence detail (Part 4.1): summary, obligations, risky
-/// clauses with severity, important dates — inside the compliance wrapper.
-class AnalysisScreen extends StatelessWidget {
-  const AnalysisScreen(
-      {super.key, required this.title, required this.analysis});
-  final String title;
-  final DocumentAnalysis analysis;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text(analysis.documentType.toUpperCase(),
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(letterSpacing: 1.1)),
-          const SizedBox(height: 10),
-          AiLegalOutput(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(analysis.summary, style: theme.textTheme.bodyLarge),
-                if (analysis.obligations.isNotEmpty) ...[
-                  const SizedBox(height: 18),
-                  Text('Key obligations',
-                      style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  ...analysis.obligations.map((o) => _Tile(
-                        icon: Icons.assignment_turned_in_outlined,
-                        title: '${o['party'] ?? ''}'.isEmpty
-                            ? '${o['obligation'] ?? ''}'
-                            : '${o['party']}: ${o['obligation'] ?? ''}',
-                        subtitle: (o['deadline_if_any'] as String?)
-                                    ?.isNotEmpty ==
-                                true
-                            ? 'Deadline: ${o['deadline_if_any']}'
-                            : null,
-                      )),
-                ],
-                if (analysis.riskyClauses.isNotEmpty) ...[
-                  const SizedBox(height: 18),
-                  Text('Flagged clauses',
-                      style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  ...analysis.riskyClauses.map((r) => _Tile(
-                        icon: Icons.warning_amber_outlined,
-                        iconColor: theme.colorScheme.error,
-                        title: '${r['clause_excerpt_summary'] ?? ''}',
-                        subtitle: '${r['why_flagged'] ?? ''}',
-                      )),
-                ],
-                if (analysis.importantDates.isNotEmpty) ...[
-                  const SizedBox(height: 18),
-                  Text('Important dates',
-                      style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  ...analysis.importantDates.map((d) => _Tile(
-                      icon: Icons.event_outlined, title: d)),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
+      ],
     );
   }
 }
 
-class _Tile extends StatelessWidget {
-  const _Tile(
-      {required this.icon, required this.title, this.subtitle, this.iconColor});
+class _FeatureCard extends StatelessWidget {
+  const _FeatureCard({
+    required this.icon,
+    required this.title,
+    required this.body,
+    required this.onTap,
+    this.emphasized = false,
+  });
+
   final IconData icon;
   final String title;
-  final String? subtitle;
-  final Color? iconColor;
+  final String body;
+  final VoidCallback onTap;
+  final bool emphasized;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+    final onColor = theme.colorScheme.onSecondary;
+    return LexaCard(
+      onTap: onTap,
+      label: title,
+      color: emphasized ? context.accentColor : null,
+      borderColor: emphasized ? context.accentColor : null,
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon,
-              size: 17, color: iconColor ?? theme.colorScheme.secondary),
-          const SizedBox(width: 10),
+          Icon(icon, size: 28, color: emphasized ? onColor : context.accentColor),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: theme.textTheme.bodyLarge),
-                if (subtitle != null && subtitle!.isNotEmpty)
-                  Text(subtitle!, style: theme.textTheme.bodySmall),
+                Text(title, style: theme.textTheme.titleMedium?.copyWith(color: emphasized ? onColor : null)),
+                const SizedBox(height: 2),
+                Text(
+                  body,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: emphasized ? onColor.withValues(alpha: 0.86) : null,
+                  ),
+                ),
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Generation (Phase 6 backend, Phase 12 mobile flow)
-// ---------------------------------------------------------------------------
-
-class _TemplateInfo {
-  _TemplateInfo(this.slug, this.name, this.description, this.fields);
-  final String slug;
-  final String name;
-  final String description;
-  final List<Map<String, dynamic>> fields;
-}
-
-class GenerateScreen extends StatefulWidget {
-  const GenerateScreen({super.key});
-
-  @override
-  State<GenerateScreen> createState() => _GenerateScreenState();
-}
-
-class _GenerateScreenState extends State<GenerateScreen> {
-  final _api = LexmindApi();
-  late final Future<List<_TemplateInfo>> _templates = _loadTemplates();
-  _TemplateInfo? _selected;
-  final Map<String, TextEditingController> _answers = {};
-  bool _busy = false;
-  String? _error;
-
-  Future<List<_TemplateInfo>> _loadTemplates() async {
-    final token =
-        Supabase.instance.client.auth.currentSession?.accessToken;
-    final res = await http.get(
-      Uri.parse('${AppConfig.apiBase}/api/documents/templates'),
-      headers: {if (token != null) 'Authorization': 'Bearer $token'},
-    );
-    if (res.statusCode != 200) {
-      throw ApiException('Templates couldn’t be loaded. Please try again.');
-    }
-    final data = jsonDecode(res.body) as Map<String, dynamic>;
-    return (data['templates'] as List)
-        .whereType<Map<String, dynamic>>()
-        .map((t) => _TemplateInfo(
-              t['slug'] as String,
-              t['name'] as String,
-              (t['description'] as String?) ?? '',
-              (t['fields'] as List)
-                  .whereType<Map<String, dynamic>>()
-                  .toList(),
-            ))
-        .toList();
-  }
-
-  Future<void> _generate() async {
-    final template = _selected;
-    if (template == null || _busy) return;
-    setState(() {
-      _busy = true;
-      _error = null;
-    });
-    try {
-      final answers = {
-        for (final e in _answers.entries)
-          if (e.value.text.trim().isNotEmpty) e.key: e.value.text.trim()
-      };
-      final result = await _api.generateDocument(
-          template: template.slug, answers: answers);
-      final generated = result['generated'];
-      if (generated is Map<String, dynamic> && mounted) {
-        Navigator.of(context).pushReplacement(MaterialPageRoute(
-          builder: (_) =>
-              DraftScreen(draft: GeneratedDoc.fromJson(generated)),
-        ));
-      }
-    } on ApiException catch (e) {
-      if (mounted) setState(() => _error = e.message);
-    } catch (_) {
-      if (mounted) {
-        setState(() =>
-            _error = "That draft couldn't be completed. Please try again.");
-      }
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      appBar: AppBar(
-          title: Text(_selected == null
-              ? 'Generate a document'
-              : _selected!.name)),
-      body: FutureBuilder<List<_TemplateInfo>>(
-        future: _templates,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Text(
-                    'Templates couldn’t be loaded. Check your connection and try again.',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium),
-              ),
-            );
-          }
-          final templates = snapshot.data!;
-          if (_selected == null) {
-            return ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: templates.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 8),
-              itemBuilder: (context, i) {
-                final t = templates[i];
-                return Card(
-                  child: ListTile(
-                    title:
-                        Text(t.name, style: theme.textTheme.titleMedium),
-                    subtitle: Text(t.description,
-                        style: theme.textTheme.bodySmall),
-                    trailing: const Icon(Icons.chevron_right, size: 20),
-                    onTap: () => setState(() {
-                      _selected = t;
-                      _answers.clear();
-                      for (final f in t.fields) {
-                        _answers[f['name'] as String] =
-                            TextEditingController();
-                      }
-                    }),
-                  ),
-                );
-              },
-            );
-          }
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              if (_error != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Text(_error!,
-                      style:
-                          TextStyle(color: theme.colorScheme.error)),
-                ),
-              ..._selected!.fields.map((f) {
-                final name = f['name'] as String;
-                final label = (f['label'] as String?) ?? name;
-                final required = f['required'] == true;
-                final kind = f['kind'] as String?; // text | textarea | date
-                final multiline = kind == 'textarea';
-                final hint = f['hint'] as String?;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(children: [
-                        Text(label, style: theme.textTheme.titleMedium),
-                        if (required)
-                          Text(' *',
-                              style: TextStyle(color: theme.colorScheme.error)),
-                      ]),
-                      const SizedBox(height: 6),
-                      TextField(
-                        controller: _answers[name],
-                        minLines: multiline ? 4 : 1,
-                        maxLines: multiline ? 8 : 2,
-                        keyboardType: kind == 'date'
-                            ? TextInputType.datetime
-                            : TextInputType.text,
-                        decoration: InputDecoration(
-                            hintText: (f['placeholder'] as String?) ?? ''),
-                      ),
-                      if (hint != null && hint.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Text(hint, style: theme.textTheme.bodySmall),
-                        ),
-                    ],
-                  ),
-                );
-              }),
-              FilledButton(
-                onPressed: _busy ? null : _generate,
-                child: Text(_busy ? 'Drafting…' : 'Draft it'),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Missing facts become [PLACEHOLDERS]; every judgment call is flagged for review.',
-                style: theme.textTheme.bodySmall,
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-/// Generated draft view: ReviewBeforeUse leads, checklist beside the draft.
-class DraftScreen extends StatelessWidget {
-  const DraftScreen({super.key, required this.draft});
-  final GeneratedDoc draft;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      appBar: AppBar(title: Text(draft.title)),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: context.accentSoft,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(reviewBeforeUseTitle,
-                    style: theme.textTheme.titleMedium),
-                const SizedBox(height: 4),
-                Text(reviewBeforeUseBody,
-                    style: theme.textTheme.bodySmall),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          if (draft.placeholders.isNotEmpty || draft.reviewFlags.isNotEmpty)
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Before you send this',
-                        style: theme.textTheme.titleMedium),
-                    const SizedBox(height: 8),
-                    ...draft.placeholders.map((p) => Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Text(p,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontFamily: 'monospace',
-                                  color: theme.colorScheme.error)),
-                        )),
-                    ...draft.reviewFlags.map((f) => Padding(
-                          padding: const EdgeInsets.only(bottom: 6),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(Icons.flag_outlined,
-                                  size: 15,
-                                  color: theme.colorScheme.secondary),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                  child: Text(f,
-                                      style:
-                                          theme.textTheme.bodyMedium)),
-                            ],
-                          ),
-                        )),
-                    if (draft.jurisdictionCaveat != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(draft.jurisdictionCaveat!,
-                            style: theme.textTheme.bodySmall),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          const SizedBox(height: 14),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: AiLegalOutput(child: MarkdownLite(draft.bodyMarkdown)),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Export as PDF/DOCX from the web app — both carry the draft notice and a lawyer review block.',
-            style: theme.textTheme.bodySmall,
-          ),
+          Icon(Icons.chevron_right_rounded, color: emphasized ? onColor : context.mutedColor),
         ],
       ),
     );

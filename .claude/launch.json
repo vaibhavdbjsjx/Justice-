@@ -4,8 +4,37 @@
     {
       "name": "web",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "apps/web", "run", "dev"],
+      "runtimeArgs": [
+        "--prefix",
+        "apps/web",
+        "run",
+        "dev"
+      ],
       "port": 3000
+    },
+    {
+      "name": "local-backend",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "supabase/tests/local-backend.mjs"
+      ],
+      "port": 54321
+    },
+    {
+      "name": "local-backend-showcase",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "supabase/tests/local-backend-showcase.mjs"
+      ],
+      "port": 54321
+    },
+    {
+      "name": "web-local",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "supabase/tests/run-web-local.mjs"
+      ],
+      "port": 3100
     }
   ]
 }

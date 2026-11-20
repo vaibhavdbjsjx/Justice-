@@ -20,7 +20,7 @@ export const LEGAL_EMAIL =
   process.env.NEXT_PUBLIC_LEGAL_EMAIL || "legal@lexa.app";
 
 /** Shown as "Last updated" on the policy pages. Bump when the text changes. */
-export const POLICIES_EFFECTIVE_DATE = "October 9, 2026";
+export const POLICIES_EFFECTIVE_DATE = "November 5, 2026";
 
 export const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL || "https://lexa.app";
@@ -28,7 +28,9 @@ export const APP_URL =
 /** Third parties that process data on our behalf (named in the Privacy Policy). */
 export const SUBPROCESSORS = [
   { name: "Supabase", purpose: "Database, authentication, and file storage", region: "United States / EU" },
-  { name: "OpenAI", purpose: "AI processing of chat and document content", region: "United States" },
-  { name: "Stripe", purpose: "Subscription billing and payments", region: "United States" },
-  { name: "Vercel", purpose: "Application hosting and content delivery", region: "Global edge network" },
+  { name: "Google (Gemini API and Google Search)", purpose: "AI processing of chat and document content, and web search to ground answers", region: "United States" },
+  { name: "OpenAI", purpose: "AI processing of chat and document content, when used instead of Google", region: "United States" },
+  { name: "Stripe", purpose: "Subscription billing and payments on the web", region: "United States" },
+  { name: "Apple", purpose: "Subscription billing and payments in the iOS app", region: "United States" },
+  { name: "Netlify", purpose: "Application hosting and content delivery", region: "Global edge network" },
 ] as const;

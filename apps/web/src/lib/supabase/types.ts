@@ -33,6 +33,9 @@ export type Database = {
           state_province: string | null;
           preferred_language: string;
           onboarding_completed: boolean;
+          /** Absent until the App Store launch migration has run. */
+          ai_consent_at?: string | null;
+          ai_consent_provider?: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -44,6 +47,8 @@ export type Database = {
           state_province?: string | null;
           preferred_language?: string;
           onboarding_completed?: boolean;
+          ai_consent_at?: string | null;
+          ai_consent_provider?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
         Relationships: [];
@@ -230,6 +235,11 @@ export type Database = {
           renews_at: string | null;
           stripe_customer_id: string | null;
           stripe_subscription_id: string | null;
+          /** Absent until the App Store launch migration has run. */
+          source?: string | null;
+          apple_original_transaction_id?: string | null;
+          apple_product_id?: string | null;
+          apple_environment?: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -240,8 +250,35 @@ export type Database = {
           renews_at?: string | null;
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
+          source?: string | null;
+          apple_original_transaction_id?: string | null;
+          apple_product_id?: string | null;
+          apple_environment?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["subscriptions"]["Insert"]>;
+        Relationships: [];
+      };
+      content_reports: {
+        Row: {
+          id: string;
+          reporter_id: string;
+          kind: string;
+          reason: string;
+          details: string | null;
+          reference_id: string | null;
+          content_excerpt: string | null;
+          status: string;
+          created_at: string;
+        };
+        Insert: {
+          reporter_id: string;
+          kind: string;
+          reason: string;
+          details?: string | null;
+          reference_id?: string | null;
+          content_excerpt?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["content_reports"]["Insert"]>;
         Relationships: [];
       };
     };

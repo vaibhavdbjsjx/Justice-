@@ -6,6 +6,7 @@ import {
   POLICIES_EFFECTIVE_DATE,
   SUBPROCESSORS,
 } from "@/lib/legal/company";
+import { AI_PROVIDER, AI_PROVIDER_LABEL, AI_REVIEW_NOTICE, aiProviderMayReviewContent } from "@/lib/ai/env";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -40,7 +41,7 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>Payment information</strong> — if you subscribe, your payment
-          is processed by Stripe. We receive your subscription status and tier,
+          is processed by Stripe on the web and by Apple in the iOS app. We receive your subscription status and tier,
           but <strong>never</strong> your full card number.
         </li>
         <li>
@@ -58,19 +59,39 @@ export default function PrivacyPage() {
         <li>Communicate with you about your account and support requests.</li>
       </ul>
       <p>
-        We do <strong>not</strong> sell your personal information, and we do not
-        use the private content of your matters to train third-party AI models.
+        We do <strong>not</strong> sell your personal information, and {COMPANY_NAME}{" "}
+        does not train AI models on your content.
+        {aiProviderMayReviewContent &&
+          " Our AI provider's terms are different on the plan we currently use: see AI processing below."}
       </p>
 
-      <h2 id="ai-processing">AI processing</h2>
+      <h2 id="ai-processing">AI processing and your permission</h2>
       <p>
         {COMPANY_NAME} uses artificial intelligence to generate legal
-        information and analyze documents. When you send a message or upload a
-        document, the relevant content is transmitted to our AI provider to
-        produce a response. We send only what is necessary for the feature you
-        are using. AI output is legal information, not legal advice, and may be
-        incomplete or inaccurate — always confirm important matters with a
-        licensed lawyer.
+        information and analyze documents. Before any of your content is shared
+        with our AI provider, we ask for your explicit permission, and you can
+        withdraw it at any time from your account.
+      </p>
+      <p>
+        With your permission, we send the questions you ask, the documents you
+        upload, the details you enter for drafts, and your jurisdiction to{" "}
+        {AI_PROVIDER_LABEL[AI_PROVIDER]} so it can produce your answer. To
+        ground answers in current sources, the AI may also run web searches
+        based on your question. We send only what is necessary for the feature
+        you are using.
+      </p>
+      {aiProviderMayReviewContent && (
+        <p>
+          <strong>Please note:</strong> {AI_REVIEW_NOTICE} Because of these
+          terms, the AI features are not offered in the European Economic Area,
+          the United Kingdom, or Switzerland.
+        </p>
+      )}
+      <p>
+        AI output is legal information, not legal advice, and may be incomplete
+        or inaccurate. Always confirm important matters with a licensed lawyer.
+        If an answer looks wrong or harmful, use Report on that answer and we
+        will review it.
       </p>
 
       <h2 id="service-providers">Service providers</h2>
@@ -89,10 +110,12 @@ export default function PrivacyPage() {
       <h2 id="retention">Data retention</h2>
       <p>
         We keep your information for as long as your account is active. You can
-        delete individual matters and documents at any time, and you may request
-        deletion of your entire account, after which we remove your personal
-        data except where we are required to retain limited records (for
-        example, for tax or legal-compliance purposes).
+        delete individual matters and documents at any time, and you can delete
+        your entire account yourself from Account in the app or on the web, after
+        which we remove your personal data except where we are required to retain
+        limited records (for example, for tax or legal-compliance purposes).
+        Original files you upload are deleted right after they are analyzed; we
+        keep the extracted text and the analysis until you delete them.
       </p>
 
       <h2 id="your-rights">Your rights &amp; choices</h2>
