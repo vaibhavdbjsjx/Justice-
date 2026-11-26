@@ -1,6 +1,7 @@
 import "server-only";
 import { AI_PROVIDER, AI_TIMEOUT_MS, requireOpenAiEnv } from "./env";
 import { completeGemini, streamGemini } from "./gemini";
+import { completeGroq, streamGroq } from "./groq";
 import {
   AiProviderError,
   type AiStreamEvent,
@@ -38,6 +39,7 @@ export async function completeStructured<T>(
   req: AiStructuredRequest,
 ): Promise<T> {
   if (AI_PROVIDER === "gemini") return completeGemini<T>(req);
+  if (AI_PROVIDER === "groq") return completeGroq<T>(req);
 
   const { apiKey, model, baseUrl } = requireOpenAiEnv();
 
@@ -121,6 +123,10 @@ export async function* streamAiChat(
 ): AsyncGenerator<AiStreamEvent> {
   if (AI_PROVIDER === "gemini") {
     yield* streamGemini(req, req.webSearch ?? false);
+    return;
+  }
+  if (AI_PROVIDER === "groq") {
+    yield* streamGroq(req);
     return;
   }
 

@@ -29,6 +29,7 @@ export const APP_URL =
 export const SUBPROCESSORS = [
   { name: "Supabase", purpose: "Database, authentication, and file storage", region: "United States / EU" },
   { name: "Google (Gemini API and Google Search)", purpose: "AI processing of chat and document content, and web search to ground answers", region: "United States" },
+  { name: "Groq", purpose: "AI processing of chat and document content", region: "United States" },
   { name: "OpenAI", purpose: "AI processing of chat and document content, when used instead of Google", region: "United States" },
   { name: "Stripe", purpose: "Subscription billing and payments on the web", region: "United States" },
   { name: "Apple", purpose: "Subscription billing and payments in the iOS app", region: "United States" },

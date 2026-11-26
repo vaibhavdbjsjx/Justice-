@@ -11,16 +11,20 @@
  * unpaid Gemini keys and forbid serving the UK/EEA/Switzerland from them.
  */
 
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-export type AiProviderName = "gemini" | "openai" | "none";
+export type AiProviderName = "groq" | "gemini" | "openai" | "none";
 
-export const AI_PROVIDER: AiProviderName = GEMINI_API_KEY
-  ? "gemini"
-  : OPENAI_API_KEY
-    ? "openai"
-    : "none";
+/** Groq (free, no card) wins when its key is set; then Gemini, then OpenAI. */
+export const AI_PROVIDER: AiProviderName = GROQ_API_KEY
+  ? "groq"
+  : GEMINI_API_KEY
+    ? "gemini"
+    : OPENAI_API_KEY
+      ? "openai"
+      : "none";
 
 /** True once an AI provider is usable. */
 export const isAiConfigured = AI_PROVIDER !== "none";
@@ -31,6 +35,7 @@ export const isAiConfigured = AI_PROVIDER !== "none";
  * read this rather than hardcoding a vendor that can change with the key.
  */
 export const AI_PROVIDER_LABEL: Record<AiProviderName, string> = {
+  groq: "Groq",
   gemini: "Google (Gemini)",
   openai: "OpenAI",
   none: "our AI provider",
@@ -98,6 +103,13 @@ export function requireOpenAiEnv(): {
   model: string;
   baseUrl: string;
 } {
+  if (AI_PROVIDER === "groq" && GROQ_API_KEY) {
+    return {
+      apiKey: GROQ_API_KEY,
+      model: process.env.GROQ_MODEL || "",
+      baseUrl: "https://api.groq.com/openai/v1",
+    };
+  }
   if (!OPENAI_API_KEY) {
     throw new Error(
       "AI provider is not configured. Set GEMINI_API_KEY or OPENAI_API_KEY.",
