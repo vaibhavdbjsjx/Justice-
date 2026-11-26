@@ -42,7 +42,7 @@ export default async function BillingPage({
   if (!viewer.user) return null; // (app) layout redirects
   // On App Store / Mac App Store builds, in-app payments are disabled and every
   // account already has full access — there is nothing to purchase here.
-  if (!PAYMENTS_ENABLED) redirect("/account");
+  if (!PAYMENTS_ENABLED || !isBillingConfigured) redirect("/account");
 
   const role = viewer.profile?.role ?? "consumer";
   const upgradeTier = role === "lawyer" ? "professional" : "plus";

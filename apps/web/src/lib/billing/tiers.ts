@@ -17,16 +17,12 @@ export const TIER_PRICING = {
 } as const;
 
 /**
- * Whether in-app paid upgrades are offered on THIS build.
- *
- * Set NEXT_PUBLIC_PAYMENTS_ENABLED=false for App Store / Mac App Store builds:
- * Apple Guideline 3.1.1 requires digital subscriptions to use In-App Purchase,
- * not Stripe. With payments off, every account gets full access (no purchase
- * walls) and the Billing section is hidden, so the native build ships clean.
- * The web build leaves it on (default) and sells via Stripe.
+ * Paid plans always exist: the iOS app sells them with In-App Purchase and the
+ * web sells them with Stripe when Stripe is configured (see isBillingConfigured).
+ * Kept as a constant, not a remote switch, so nothing in the app changes after
+ * App Review.
  */
-export const PAYMENTS_ENABLED =
-  process.env.NEXT_PUBLIC_PAYMENTS_ENABLED !== "false";
+export const PAYMENTS_ENABLED = true;
 
 export const TIER_FEATURES: Record<"plus" | "professional", string[]> = {
   plus: [

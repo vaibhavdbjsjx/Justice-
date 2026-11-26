@@ -1,7 +1,7 @@
 name: lexa_mobile
 description: "Lexa: legal information and workflow, on the same backend as the web app."
 publish_to: 'none'
-version: 1.0.0+3
+version: 1.0.0+4
 
 environment:
   sdk: ^3.12.2

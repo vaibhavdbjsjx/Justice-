@@ -44,6 +44,8 @@ const lawyerNav: NavItem[] = [
 
 export function navForRole(role: UserRole): NavItem[] {
   const items = role === "lawyer" ? lawyerNav : consumerNav;
-  // Hide Billing on builds without in-app payments (App Store / Mac App Store).
-  return PAYMENTS_ENABLED ? items : items.filter((i) => i.href !== "/billing");
+  // Web checkout needs Stripe (NEXT_PUBLIC_STRIPE_ENABLED=true once its keys are
+  // set); until then, plans are bought in the iOS app.
+  const webCheckout = PAYMENTS_ENABLED && process.env.NEXT_PUBLIC_STRIPE_ENABLED === "true";
+  return webCheckout ? items : items.filter((i) => i.href !== "/billing");
 }

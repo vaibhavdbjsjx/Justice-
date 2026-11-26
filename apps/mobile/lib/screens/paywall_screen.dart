@@ -10,8 +10,6 @@ import '../widgets/ui.dart';
 /// Shows the plans, with App Store prices and everything Apple asks to be stated
 /// before someone subscribes (Guideline 3.1.2). Skipped where payments are off.
 Future<void> showPaywall(BuildContext context, {String? reason}) async {
-  final state = AppScope.read(context);
-  if (state.billing?.paymentsEnabled == false || !state.remote.paymentsEnabled) return;
   await Navigator.of(context, rootNavigator: true).push(
     MaterialPageRoute(
       fullscreenDialog: true,

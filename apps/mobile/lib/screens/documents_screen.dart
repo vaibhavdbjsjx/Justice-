@@ -19,7 +19,7 @@ Future<void> startDocumentAnalysis(BuildContext context, {String? matterId}) asy
   if (!context.mounted) return;
 
   final billing = state.billing;
-  if (billing != null && billing.isFree && billing.paymentsEnabled) {
+  if (billing != null && billing.isFree) {
     await showPaywall(
       context,
       reason: 'Document Intelligence is part of Plus. Upload any legal document and see what it really says.',

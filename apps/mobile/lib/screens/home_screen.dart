@@ -184,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-                    if (billing != null && billing.isFree && billing.paymentsEnabled) ...[
+                    if (billing != null && billing.isFree) ...[
                       const SizedBox(height: 12),
                       Reveal(index: 2, child: _UsageCard(billing: billing)),
                     ],

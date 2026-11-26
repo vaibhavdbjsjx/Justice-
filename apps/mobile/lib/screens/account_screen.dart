@@ -144,7 +144,7 @@ class _AccountScreenState extends State<AccountScreen> {
     final state = AppScope.of(context);
     final profile = state.profile;
     final billing = state.billing;
-    final showPlans = billing?.paymentsEnabled ?? state.remote.paymentsEnabled;
+    const showPlans = true;
     final hasConsent = state.hasAiConsent;
 
     Widget planRow() {
