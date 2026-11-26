@@ -11,7 +11,8 @@
  * unpaid Gemini keys and forbid serving the UK/EEA/Switzerland from them.
  */
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const GROQ_API_KEY =
+  process.env.GROQ_API_KEY || process.env.Groq_API || process.env.GROQ_API;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
